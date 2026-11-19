@@ -14,13 +14,17 @@ export function middleware(req: NextRequest) {
   const rawHost = req.headers.get("host") || "localhost:3000";
   const hostname = rawHost.split(":")[0].toLowerCase();
 
-  const rootDomainEnv = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000")
+  const rootDomainEnv = (
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN || "nocautehub.com"
+  )
     .split(":")[0]
     .toLowerCase();
 
   const isRootDomain =
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
+    hostname === "nocautehub.com" ||
+    hostname === "www.nocautehub.com" ||
     hostname === rootDomainEnv ||
     hostname === `www.${rootDomainEnv}` ||
     hostname.endsWith(".pages.dev") ||
@@ -30,6 +34,16 @@ export function middleware(req: NextRequest) {
   // Subdomínio local (ex: nocaute-fight-club.localhost)
   if (hostname.endsWith(".localhost")) {
     const slug = hostname.replace(".localhost", "");
+    if (slug && slug !== "www") {
+      return NextResponse.rewrite(
+        new URL(`/sites/${slug}${url.pathname}${url.search}`, req.url)
+      );
+    }
+  }
+
+  // Subdomínio oficial *.nocautehub.com (ex: ftm.nocautehub.com)
+  if (hostname.endsWith(".nocautehub.com")) {
+    const slug = hostname.replace(".nocautehub.com", "");
     if (slug && slug !== "www") {
       return NextResponse.rewrite(
         new URL(`/sites/${slug}${url.pathname}${url.search}`, req.url)
