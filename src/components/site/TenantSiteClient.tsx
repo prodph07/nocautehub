@@ -403,7 +403,7 @@ export function TenantSiteClient({
           </div>
         </section>
       ) : (
-        <section className="relative min-h-[88svh] sm:min-h-[88vh] flex items-center overflow-hidden">
+        <section className="relative sm:min-h-[86vh] flex items-center overflow-hidden">
         {/* Background Media com Parallax Sutil (apenas Desktop) e Vinheta */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -451,7 +451,7 @@ export function TenantSiteClient({
           }}
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-24 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-10 sm:py-24 w-full">
           <div className="max-w-2xl space-y-5 sm:space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-card text-xs font-semibold uppercase tracking-widest text-neutral-200">
               <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />

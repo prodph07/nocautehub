@@ -86,6 +86,7 @@ export function TenantEditorClient({
   );
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [activeSection, setActiveSection] = useState<EditorSectionKey>("hero");
+  const [mobilePane, setMobilePane] = useState<"edit" | "preview">("edit");
   const [saving, setSaving] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
   const [error, setError] = useState("");
@@ -246,8 +247,8 @@ export function TenantEditorClient({
         </div>
 
         {/* Barra de Seções na ordem real do site */}
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 overflow-x-auto">
-          <div className="flex gap-1 border-t border-white/5 py-2 min-w-max">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 overflow-x-auto no-scrollbar">
+          <div className="flex gap-1.5 border-t border-white/5 py-2 min-w-max">
             {visibleSections.map((sec) => {
               const Icon = sec.icon;
               const active = activeSection === sec.key;
@@ -256,7 +257,7 @@ export function TenantEditorClient({
                   key={sec.key}
                   type="button"
                   onClick={() => setActiveSection(sec.key)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition ${
+                  className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 active:scale-[0.97] transition ${
                     active
                       ? "bg-rose-600 text-white shadow-md shadow-rose-600/20"
                       : "text-neutral-400 hover:text-white hover:bg-white/5"
@@ -284,6 +285,34 @@ export function TenantEditorClient({
           </div>
         )}
 
+        {/* Alternador Mobile: Editar Campos vs Ver Preview Ao Vivo */}
+        {!isLeadsTab && (
+          <div className="lg:hidden grid grid-cols-2 gap-2 mb-5 p-1 rounded-2xl bg-white/5 border border-white/10">
+            <button
+              type="button"
+              onClick={() => setMobilePane("edit")}
+              className={`min-h-[44px] rounded-xl text-xs font-bold uppercase tracking-wider active:scale-[0.97] transition ${
+                mobilePane === "edit"
+                  ? "bg-rose-600 text-white shadow-md"
+                  : "text-neutral-400"
+              }`}
+            >
+              Editar Campos
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobilePane("preview")}
+              className={`min-h-[44px] rounded-xl text-xs font-bold uppercase tracking-wider active:scale-[0.97] transition ${
+                mobilePane === "preview"
+                  ? "bg-rose-600 text-white shadow-md"
+                  : "text-neutral-400"
+              }`}
+            >
+              Ver Preview Ao Vivo
+            </button>
+          </div>
+        )}
+
         <div
           className={
             isLeadsTab
@@ -294,7 +323,15 @@ export function TenantEditorClient({
           {/* ===============================================================
               COLUNA ESQUERDA: FORMULÁRIO DA SEÇÃO ATIVA
              =============================================================== */}
-          <div className={isLeadsTab ? "" : "lg:col-span-5 space-y-5 pb-16"}>
+          <div
+            className={
+              isLeadsTab
+                ? ""
+                : `lg:col-span-5 space-y-5 pb-16 ${
+                    mobilePane === "preview" ? "hidden lg:block" : "block"
+                  }`
+            }
+          >
             {/* 1. CAPA (HERO), TOPO & VISUAL */}
             {activeSection === "hero" && (
               <div className="space-y-5">
@@ -1818,7 +1855,45 @@ export function TenantEditorClient({
                     Nenhum lead capturado ainda. Teste o botão &ldquo;Agendar Aula Experimental&rdquo; no site público!
                   </div>
                 ) : (
-                  <div className="glass-card rounded-2xl overflow-hidden">
+                  <>
+                    {/* Cards Mobile (sem tabela horizontal) */}
+                    <div className="sm:hidden space-y-3">
+                      {leads.map((lead) => (
+                        <div key={lead.id} className="glass-card rounded-2xl p-4 space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-semibold text-sm text-white">{lead.name}</p>
+                              <p className="text-xs text-neutral-400">
+                                {lead.phone || "Via WhatsApp direto"}
+                              </p>
+                            </div>
+                            <span className="text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-neutral-300">
+                              {lead.preferred_shift}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2 text-xs text-neutral-300">
+                            <span>{lead.chosen_modality}</span>
+                            <span className="text-neutral-500">
+                              {lead.utm_source || "Direto"}
+                            </span>
+                          </div>
+                          <select
+                            value={lead.status}
+                            onChange={(e) =>
+                              handleLeadStatus(lead.id, e.target.value as LeadStatus)
+                            }
+                            className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-black/50 border border-white/15 text-sm text-white"
+                          >
+                            <option value="novo">Novo</option>
+                            <option value="agendado">Veio treinar</option>
+                            <option value="matriculado">Matriculou</option>
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Tabela Desktop */}
+                    <div className="hidden sm:block glass-card rounded-2xl overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs sm:text-sm">
                         <thead className="bg-white/5 text-neutral-400 uppercase text-[11px]">
@@ -1875,16 +1950,21 @@ export function TenantEditorClient({
                       </table>
                     </div>
                   </div>
+                  </>
                 )}
               </div>
             )}
           </div>
 
           {/* ===============================================================
-              COLUNA DIREITA: PREVIEW AO VIVO (STICKY)
+              COLUNA DIREITA: PREVIEW AO VIVO (STICKY NO DESKTOP / ABA NO MOBILE)
              =============================================================== */}
           {!isLeadsTab && (
-            <div className="lg:col-span-7 lg:sticky lg:top-[128px]">
+            <div
+              className={`lg:col-span-7 lg:sticky lg:top-[128px] ${
+                mobilePane === "edit" ? "hidden lg:block" : "block"
+              }`}
+            >
               <SectionLivePreview
                 tenant={tenant}
                 activeSection={activeSection}

@@ -377,11 +377,11 @@ export function MasterDashboardClient({
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 shrink-0 w-full lg:w-auto">
                     <Link
                       href={`/sites/${tenant.slug}`}
                       target="_blank"
-                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white inline-flex items-center gap-1.5 transition"
+                      className="min-h-[44px] px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-[0.97] border border-white/10 text-xs font-semibold text-white inline-flex items-center justify-center gap-1.5 transition"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Ver Site</span>
@@ -390,7 +390,7 @@ export function MasterDashboardClient({
                     <Link
                       href={`/sites/${tenant.slug}/links`}
                       target="_blank"
-                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center gap-1.5 transition"
+                      className="min-h-[44px] px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-[0.97] border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center justify-center gap-1.5 transition"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Link Bio</span>
@@ -399,7 +399,7 @@ export function MasterDashboardClient({
                     <Link
                       href={`/sites/${tenant.slug}/admin`}
                       target="_blank"
-                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center gap-1.5 transition"
+                      className="min-h-[44px] px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-[0.97] border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center justify-center gap-1.5 transition"
                     >
                       <Users className="w-3.5 h-3.5" />
                       <span>Painel Cliente</span>
@@ -407,7 +407,7 @@ export function MasterDashboardClient({
 
                     <Link
                       href={`/master/tenants/${tenant.id}`}
-                      className="px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-xs font-semibold text-white inline-flex items-center gap-1.5 transition"
+                      className="min-h-[44px] px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 active:scale-[0.97] border border-rose-500/40 text-xs font-semibold text-white inline-flex items-center justify-center gap-1.5 transition"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                       <span>Editar</span>
@@ -417,7 +417,7 @@ export function MasterDashboardClient({
                       type="button"
                       disabled={isBusy}
                       onClick={() => handleDuplicate(tenant.id)}
-                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center gap-1.5 transition disabled:opacity-50"
+                      className="min-h-[44px] px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-[0.97] border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center justify-center gap-1.5 transition disabled:opacity-50"
                     >
                       {isBusy ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -427,30 +427,32 @@ export function MasterDashboardClient({
                       <span>Duplicar Demo</span>
                     </button>
 
-                    <button
-                      type="button"
-                      disabled={isBusy}
-                      onClick={() => handleToggleStatus(tenant)}
-                      title={isActive ? "Suspender site" : "Reativar site"}
-                      className={`px-3 py-2 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition disabled:opacity-50 ${
-                        isActive
-                          ? "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300"
-                          : "bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
-                      }`}
-                    >
-                      <Power className="w-3.5 h-3.5" />
-                      <span>{isActive ? "Suspender" : "Ativar"}</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => handleToggleStatus(tenant)}
+                        title={isActive ? "Suspender site" : "Reativar site"}
+                        className={`flex-1 sm:flex-none min-h-[44px] px-3 py-2 rounded-xl border text-xs font-semibold inline-flex items-center justify-center gap-1.5 active:scale-[0.97] transition disabled:opacity-50 ${
+                          isActive
+                            ? "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300"
+                            : "bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+                        }`}
+                      >
+                        <Power className="w-3.5 h-3.5" />
+                        <span>{isActive ? "Suspender" : "Ativar"}</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      disabled={isBusy}
-                      onClick={() => handleDelete(tenant)}
-                      aria-label="Excluir academia"
-                      className="p-2 rounded-xl bg-white/5 hover:bg-rose-600/30 border border-white/10 hover:border-rose-500/40 text-neutral-400 hover:text-rose-300 transition disabled:opacity-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => handleDelete(tenant)}
+                        aria-label="Excluir academia"
+                        className="min-w-[44px] min-h-[44px] p-2 rounded-xl bg-white/5 hover:bg-rose-600/30 active:scale-[0.95] border border-white/10 hover:border-rose-500/40 text-neutral-400 hover:text-rose-300 inline-flex items-center justify-center transition disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -459,14 +461,14 @@ export function MasterDashboardClient({
         </div>
       </main>
 
-      {/* Modal Nova Academia */}
+      {/* Modal Nova Academia (Bottom Sheet no Mobile com Safe Area iOS) */}
       {createOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
           onClick={() => setCreateOpen(false)}
         >
           <div
-            className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#121214] border border-white/10 rounded-2xl p-6 space-y-5 relative"
+            className="w-full sm:max-w-md max-h-[88dvh] overflow-y-auto bg-[#141417] border border-white/10 border-t-white/20 rounded-t-3xl sm:rounded-2xl p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-6 space-y-5 relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button

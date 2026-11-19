@@ -676,7 +676,7 @@ export function ClientAdminDashboard({
               {tenant.schedules.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="glass-card rounded-xl p-4 grid grid-cols-2 sm:grid-cols-6 gap-2.5 items-center"
+                  className="glass-card rounded-xl p-4 grid grid-cols-1 sm:grid-cols-6 gap-2.5 items-center"
                 >
                   <select
                     value={item.day_of_week}
