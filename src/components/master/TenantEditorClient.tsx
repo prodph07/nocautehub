@@ -39,6 +39,7 @@ import { DomainManagerCard } from "@/components/shared/DomainManagerCard";
 import { StoriesScheduleGenerator } from "@/components/shared/StoriesScheduleGenerator";
 import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
 import { CepAddressFields } from "@/components/shared/CepAddressFields";
+import { ClientAccessCard } from "./ClientAccessCard";
 import {
   SectionLivePreview,
   type EditorSectionKey,
@@ -1575,6 +1576,10 @@ export function TenantEditorClient({
             {/* CONFIGURAÇÕES & DOMÍNIO */}
             {activeSection === "config" && (
               <div className="space-y-5">
+                {!isClientMode && (
+                  <ClientAccessCard tenantId={tenant.id} slug={tenant.slug} />
+                )}
+
                 <DomainManagerCard
                   tenantId={tenant.id}
                   slug={tenant.slug}
