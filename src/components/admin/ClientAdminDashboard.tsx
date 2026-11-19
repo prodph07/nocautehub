@@ -35,6 +35,7 @@ import {
 } from "@/types/tenant";
 import { hexToRgbTriplet } from "@/lib/colors";
 import { getPlanCapabilities } from "@/lib/plans";
+import { getTenantUrl } from "@/lib/urls";
 import { DomainManagerCard } from "@/components/shared/DomainManagerCard";
 import { StoriesScheduleGenerator } from "@/components/shared/StoriesScheduleGenerator";
 import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
@@ -64,7 +65,7 @@ export function ClientAdminDashboard({
   const handleCopyBioLink = () => {
     const url = tenant.custom_domain
       ? `https://${tenant.custom_domain}/links`
-      : `${window.location.origin}/sites/${tenant.slug}/links`;
+      : `https://${tenant.slug}.nocautehub.com/links`;
     navigator.clipboard.writeText(url);
     setCopiedBio(true);
     setTimeout(() => setCopiedBio(false), 2500);
@@ -159,24 +160,26 @@ export function ClientAdminDashboard({
 
           <div className="flex items-center gap-2">
             {caps.linkBio && (
-              <Link
-                href={`/sites/${tenant.slug}/links`}
+              <a
+                href={getTenantUrl(tenant, "/links")}
                 target="_blank"
+                rel="noreferrer"
                 className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center gap-1.5"
               >
                 <Link2 className="w-3.5 h-3.5 text-brand-primary" />
                 <span className="hidden md:inline">Link na Bio</span>
-              </Link>
+              </a>
             )}
 
-            <Link
-              href={`/sites/${tenant.slug}`}
+            <a
+              href={getTenantUrl(tenant, "")}
               target="_blank"
+              rel="noreferrer"
               className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white inline-flex items-center gap-1.5"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Ver Meu Site</span>
-            </Link>
+            </a>
 
             <button
               type="button"

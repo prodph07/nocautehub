@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { TenantWithRelations } from "@/types/tenant";
 import { hexToRgbTriplet } from "@/lib/colors";
+import { getTenantUrl } from "@/lib/urls";
 
 interface LinkBioClientProps {
   tenant: TenantWithRelations;
@@ -129,8 +130,8 @@ export function LinkBioClient({ tenant }: LinkBioClientProps) {
             <span>Agendar Aula Experimental Gratuita</span>
           </a>
 
-          <Link
-            href={`/sites/${tenant.slug}#horarios`}
+          <a
+            href={getTenantUrl(tenant, "#horarios")}
             className="w-full py-3.5 px-5 rounded-2xl glass-card hover:border-brand-primary/60 text-white font-semibold text-sm transition flex items-center justify-between"
           >
             <span className="flex items-center gap-3">
@@ -138,10 +139,10 @@ export function LinkBioClient({ tenant }: LinkBioClientProps) {
               Grade de Horários Interativa
             </span>
             <ExternalLink className="w-4 h-4 text-neutral-500" />
-          </Link>
+          </a>
 
-          <Link
-            href={`/sites/${tenant.slug}#modalidades`}
+          <a
+            href={getTenantUrl(tenant, "#modalidades")}
             className="w-full py-3.5 px-5 rounded-2xl glass-card hover:border-brand-primary/60 text-white font-semibold text-sm transition flex items-center justify-between"
           >
             <span className="flex items-center gap-3">
@@ -149,7 +150,7 @@ export function LinkBioClient({ tenant }: LinkBioClientProps) {
               Conhecer Modalidades
             </span>
             <ExternalLink className="w-4 h-4 text-neutral-500" />
-          </Link>
+          </a>
 
           <a
             href={mapsSearchUrl}
@@ -164,8 +165,8 @@ export function LinkBioClient({ tenant }: LinkBioClientProps) {
             <ExternalLink className="w-4 h-4 text-neutral-500" />
           </a>
 
-          <Link
-            href={`/sites/${tenant.slug}`}
+          <a
+            href={getTenantUrl(tenant, "")}
             className="w-full py-3.5 px-5 rounded-2xl glass-card hover:border-brand-primary/60 text-white font-semibold text-sm transition flex items-center justify-between"
           >
             <span className="flex items-center gap-3">
@@ -173,7 +174,7 @@ export function LinkBioClient({ tenant }: LinkBioClientProps) {
               Site Oficial da Academia
             </span>
             <ExternalLink className="w-4 h-4 text-neutral-500" />
-          </Link>
+          </a>
         </div>
 
         {/* Redes Sociais */}

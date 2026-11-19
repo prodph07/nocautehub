@@ -34,6 +34,7 @@ import {
   type TenantWithRelations,
 } from "@/types/tenant";
 import { BRAND_COLOR_PRESETS } from "@/lib/colors";
+import { getTenantUrl } from "@/lib/urls";
 import { ImageUploadField } from "./ImageUploadField";
 import { DomainManagerCard } from "@/components/shared/DomainManagerCard";
 import { StoriesScheduleGenerator } from "@/components/shared/StoriesScheduleGenerator";
@@ -208,14 +209,15 @@ export function TenantEditorClient({
 
           <div className="flex items-center gap-2.5 shrink-0">
             {!embedded && (
-              <Link
-                href={`/sites/${tenant.slug}`}
+              <a
+                href={getTenantUrl(tenant, "")}
                 target="_blank"
+                rel="noreferrer"
                 className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white inline-flex items-center gap-1.5"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Abrir Site</span>
-              </Link>
+              </a>
             )}
 
             <button
