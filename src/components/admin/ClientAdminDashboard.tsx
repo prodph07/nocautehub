@@ -11,12 +11,14 @@ import {
   Globe,
   Link2,
   Loader2,
+  Lock,
   LogOut,
   Megaphone,
   MessageCircle,
   Palette,
   Plus,
   Save,
+  Sparkles,
   TrendingUp,
   Trash2,
   Users,
@@ -32,6 +34,7 @@ import {
   type WeeklyAnalyticsSummary,
 } from "@/types/tenant";
 import { hexToRgbTriplet } from "@/lib/colors";
+import { getPlanCapabilities } from "@/lib/plans";
 import { DomainManagerCard } from "@/components/shared/DomainManagerCard";
 import { StoriesScheduleGenerator } from "@/components/shared/StoriesScheduleGenerator";
 import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
@@ -68,6 +71,7 @@ export function ClientAdminDashboard({
   };
 
   const primaryColor = tenant.theme_config?.primary || "#E11D48";
+  const caps = getPlanCapabilities(tenant.plan_tier);
   const cssVars = {
     "--primary": primaryColor,
     "--primary-rgb": hexToRgbTriplet(primaryColor),
@@ -133,24 +137,37 @@ export function ClientAdminDashboard({
               {tenant.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <h1 className="font-display text-lg uppercase text-white truncate leading-none">
-                {tenant.name}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-lg uppercase text-white truncate leading-none">
+                  {tenant.name}
+                </h1>
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                    tenant.plan_tier === "pro"
+                      ? "bg-brand-primary/15 text-brand-primary border-brand-primary/30"
+                      : "bg-white/5 text-neutral-300 border-white/10"
+                  }`}
+                >
+                  Plano {tenant.plan_tier}
+                </span>
+              </div>
               <span className="text-[11px] text-neutral-400">
-                Painel do Cliente • Nocaute Hub
+                Painel do Dono • Nocaute Hub
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
-              href={`/sites/${tenant.slug}/links`}
-              target="_blank"
-              className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center gap-1.5"
-            >
-              <Link2 className="w-3.5 h-3.5 text-brand-primary" />
-              <span className="hidden md:inline">Link na Bio</span>
-            </Link>
+            {caps.linkBio && (
+              <Link
+                href={`/sites/${tenant.slug}/links`}
+                target="_blank"
+                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-200 inline-flex items-center gap-1.5"
+              >
+                <Link2 className="w-3.5 h-3.5 text-brand-primary" />
+                <span className="hidden md:inline">Link na Bio</span>
+              </Link>
+            )}
 
             <Link
               href={`/sites/${tenant.slug}`}
@@ -447,9 +464,27 @@ export function ClientAdminDashboard({
         )}
 
         {/* ===================================================================
-            ABA 2: MINI-CRM DE LEADS (PROVA DE ROI)
+            ABA 2: MINI-CRM DE LEADS (PROVA DE ROI - PLANO PRO)
            =================================================================== */}
-        {tab === "crm" && (
+        {tab === "crm" && !caps.crm && (
+          <div className="glass-card rounded-3xl p-8 sm:p-10 text-center max-w-2xl mx-auto space-y-4 border border-brand-primary/30">
+            <div className="w-12 h-12 rounded-2xl bg-brand-primary/15 border border-brand-primary/30 text-brand-primary flex items-center justify-center mx-auto">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h2 className="font-display text-2xl sm:text-3xl uppercase text-white">
+              Gestão de Pessoas Interessadas (Plano Pro)
+            </h2>
+            <p className="text-sm text-neutral-300 leading-relaxed">
+              No <strong>Plano Pro</strong>, o Mini-Funil de WhatsApp salva automaticamente cada interessado com modalidade e turno aqui, permitindo acompanhar quem veio treinar e quem matriculou.
+            </p>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300">
+              <Lock className="w-3.5 h-3.5 text-brand-primary" />
+              Fale com o suporte do Nocaute Hub para liberar o Plano Pro
+            </span>
+          </div>
+        )}
+
+        {tab === "crm" && caps.crm && (
           <div className="space-y-6">
             <div>
               <h2 className="font-display text-2xl uppercase text-white">
@@ -589,7 +624,9 @@ export function ClientAdminDashboard({
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <StoriesScheduleGenerator tenant={tenant} />
+                {caps.storiesGenerator && (
+                  <StoriesScheduleGenerator tenant={tenant} />
+                )}
                 <button
                   type="button"
                   onClick={() =>
@@ -744,9 +781,29 @@ export function ClientAdminDashboard({
         )}
 
         {/* ===================================================================
-            ABA 4: DOMÍNIO PRÓPRIO VIA API
+            ABA 4: DOMÍNIO PRÓPRIO VIA API (PLANO PRO)
            =================================================================== */}
-        {tab === "dominio" && (
+        {tab === "dominio" && !caps.customDomain && (
+          <div className="glass-card rounded-3xl p-8 sm:p-10 text-center max-w-2xl mx-auto space-y-4 border border-brand-primary/30">
+            <div className="w-12 h-12 rounded-2xl bg-brand-primary/15 border border-brand-primary/30 text-brand-primary flex items-center justify-center mx-auto">
+              <Globe className="w-6 h-6" />
+            </div>
+            <h2 className="font-display text-2xl sm:text-3xl uppercase text-white">
+              Domínio Próprio .com.br + SSL (Plano Pro)
+            </h2>
+            <p className="text-sm text-neutral-300 leading-relaxed">
+              Seu plano atual (<strong>Essencial</strong>) usa o subdomínio gratuito{" "}
+              <code className="text-white">{tenant.slug}.nocautehub.com.br</code>. Faça upgrade para o{" "}
+              <strong>Plano Pro</strong> para conectar seu domínio próprio com HTTPS automático.
+            </p>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300">
+              <Lock className="w-3.5 h-3.5 text-brand-primary" />
+              Fale com o suporte do Nocaute Hub para liberar o Plano Pro
+            </span>
+          </div>
+        )}
+
+        {tab === "dominio" && caps.customDomain && (
           <div className="max-w-3xl">
             <DomainManagerCard
               tenantId={tenant.id}

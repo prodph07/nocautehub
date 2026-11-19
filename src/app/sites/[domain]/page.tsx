@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { repository } from "@/lib/repository";
+import { getPlanCapabilities } from "@/lib/plans";
 import { TenantSiteClient } from "@/components/site/TenantSiteClient";
 import { SuspendedScreen } from "@/components/site/SuspendedScreen";
 import { TrackingScripts } from "@/components/site/TrackingScripts";
@@ -115,7 +116,9 @@ export default async function TenantSitePage({ params }: SitePageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrgFaq) }}
         />
       )}
-      <TrackingScripts pixelId={tenant.pixel_id} gtmId={tenant.gtm_id} />
+      {getPlanCapabilities(tenant.plan_tier).pixelTracking && (
+        <TrackingScripts pixelId={tenant.pixel_id} gtmId={tenant.gtm_id} />
+      )}
       <TenantSiteClient tenant={tenant} />
     </>
   );

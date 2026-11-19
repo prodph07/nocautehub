@@ -15,6 +15,7 @@ interface InteractiveScheduleProps {
   modalities: Modality[];
   schedules: ScheduleItem[];
   onBookModality: (modalityName: string) => void;
+  interactive?: boolean;
 }
 
 const JS_DAY_TO_KEY: DayOfWeek[] = [
@@ -31,6 +32,7 @@ export function InteractiveSchedule({
   modalities,
   schedules,
   onBookModality,
+  interactive = true,
 }: InteractiveScheduleProps) {
   const activeDays = useMemo(() => {
     const set = new Set(schedules.map((s) => s.day_of_week));
@@ -38,16 +40,20 @@ export function InteractiveSchedule({
   }, [schedules]);
 
   const [selectedDay, setSelectedDay] = useState<DayOfWeek | "all">(
-    activeDays[0] || "all"
+    interactive ? activeDays[0] || "all" : "all"
   );
   const [selectedModality, setSelectedModality] = useState<string>("all");
 
   useEffect(() => {
+    if (!interactive) {
+      setSelectedDay("all");
+      return;
+    }
     const todayKey = JS_DAY_TO_KEY[new Date().getDay()];
     if (activeDays.includes(todayKey)) {
       setSelectedDay(todayKey);
     }
-  }, [activeDays]);
+  }, [activeDays, interactive]);
 
   const modalityMap = useMemo(() => {
     const map = new Map<string, Modality>();
@@ -83,7 +89,8 @@ export function InteractiveSchedule({
 
   return (
     <div className="space-y-6">
-      {/* Filtros Interativos */}
+      {/* Filtros Interativos (Plano Pro) */}
+      {interactive && (
       <div className="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-400">
@@ -150,6 +157,7 @@ export function InteractiveSchedule({
           </div>
         </div>
       </div>
+      )}
 
       {/* Lista Dinâmica em HTML (Mobile-First) */}
       {groupedByDay.length === 0 ? (
@@ -206,14 +214,16 @@ export function InteractiveSchedule({
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => onBookModality(modName)}
-                        className="shrink-0 min-h-[44px] px-3.5 py-2 rounded-xl bg-white/5 hover:bg-brand-primary active:scale-[0.97] text-neutral-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5"
-                      >
-                        <span className="hidden sm:inline">Testar aula</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
+                      {interactive && (
+                        <button
+                          type="button"
+                          onClick={() => onBookModality(modName)}
+                          className="shrink-0 min-h-[44px] px-3.5 py-2 rounded-xl bg-white/5 hover:bg-brand-primary active:scale-[0.97] text-neutral-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5"
+                        >
+                          <span className="hidden sm:inline">Testar aula</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   );
                 })}

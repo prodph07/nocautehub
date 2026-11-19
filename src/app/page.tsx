@@ -12,10 +12,21 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
-  Zap,
+  X,
 } from "lucide-react";
+import { PLAN_COMPARISON_ROWS } from "@/lib/plans";
 
 export default function NocauteHubHomePage() {
+  const salesWa = (process.env.NEXT_PUBLIC_SALES_WHATSAPP || "").replace(
+    /\D/g,
+    ""
+  );
+  const waCommercialUrl = salesWa
+    ? `https://wa.me/${salesWa}?text=${encodeURIComponent(
+        "Olá! Quero conhecer o Nocaute Hub e ver uma demonstração para minha academia de luta."
+      )}`
+    : "/sites/ftm";
+
   return (
     <div className="min-h-screen bg-[#0C0C0C] text-neutral-100 flex flex-col">
       {/* Header Institucional */}
@@ -45,18 +56,21 @@ export default function NocauteHubHomePage() {
             <a href="#planos" className="hover:text-white transition">
               Planos
             </a>
+            <a href="#faq" className="hover:text-white transition">
+              Dúvidas
+            </a>
           </nav>
 
           <div className="flex items-center gap-2.5">
             <Link
-              href="/sites/nocaute-fight-club"
-              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs sm:text-sm font-semibold text-white transition"
+              href="/sites/ftm"
+              className="min-h-[40px] px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs sm:text-sm font-semibold text-white transition inline-flex items-center"
             >
               Ver Demo
             </Link>
             <Link
               href="/master/login"
-              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs sm:text-sm font-semibold text-white transition"
+              className="min-h-[40px] px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs sm:text-sm font-semibold text-white transition inline-flex items-center"
             >
               Acesso Master
             </Link>
@@ -81,32 +95,39 @@ export default function NocauteHubHomePage() {
               </h1>
 
               <p className="text-base sm:text-lg text-neutral-300 leading-relaxed max-w-2xl">
-                Chega de site lento que ninguém lê. O <strong className="text-white">Nocaute Hub</strong> entrega um site profissional em 11 seções de alta conversão, grade de horários interativa, mini-funil de WhatsApp e painel próprio para sua academia — no ar em minutos.
+                Chega de site lento que ninguém lê. O{" "}
+                <strong className="text-white">Nocaute Hub</strong> entrega um
+                site profissional em 11 seções de alta conversão, grade de
+                horários interativa, mini-funil de WhatsApp e painel próprio
+                para o dono da academia — no ar em minutos.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link
-                  href="/sites/nocaute-fight-club"
-                  className="btn-shimmer px-7 py-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm sm:text-base uppercase tracking-wider transition inline-flex items-center justify-center gap-2 shadow-xl shadow-rose-600/25"
+                  href="/sites/ftm"
+                  className="btn-shimmer min-h-[52px] px-7 py-4 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.97] text-white font-bold text-sm sm:text-base uppercase tracking-wider transition inline-flex items-center justify-center gap-2 shadow-xl shadow-rose-600/25"
                 >
-                  <span>Explorar Academia Demo</span>
+                  <span>Ver Academia Demo ao Vivo</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
-                <Link
-                  href="/sites/nocaute-fight-club/links"
-                  className="px-6 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm sm:text-base transition inline-flex items-center justify-center gap-2"
+                <a
+                  href="#planos"
+                  className="min-h-[52px] px-6 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 active:scale-[0.97] text-white font-semibold text-sm sm:text-base transition inline-flex items-center justify-center gap-2"
                 >
-                  <Link2 className="w-4 h-4 text-rose-400" />
-                  <span>Ver Link na Bio</span>
-                </Link>
+                  <Sparkles className="w-4 h-4 text-rose-400" />
+                  <span>Comparar Planos</span>
+                </a>
               </div>
             </div>
           </div>
         </section>
 
         {/* RECURSOS */}
-        <section id="recursos" className="py-16 sm:py-24 border-t border-white/5 bg-[#101012]">
+        <section
+          id="recursos"
+          className="py-16 sm:py-24 border-t border-white/5 bg-[#101012]"
+        >
           <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
             <div className="max-w-2xl">
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-rose-400">
@@ -122,7 +143,7 @@ export default function NocauteHubHomePage() {
                 {
                   icon: MessageCircle,
                   title: "Mini-Funil WhatsApp",
-                  desc: "O visitante escolhe a modalidade e o melhor turno em 2 cliques. O lead é salvo no CRM e o WhatsApp abre com a mensagem pronta.",
+                  desc: "O visitante escolhe a modalidade e o turno em toques rápidos. O contato fica salvo e o WhatsApp abre com a mensagem pronta.",
                 },
                 {
                   icon: Palette,
@@ -131,8 +152,8 @@ export default function NocauteHubHomePage() {
                 },
                 {
                   icon: BarChart3,
-                  title: "Analytics & Mini-CRM",
-                  desc: "Saiba exatamente quantas visitas, cliques no WhatsApp e matrículas o seu site gerou na semana.",
+                  title: "Resultados Descomplicados",
+                  desc: "Saiba quantas visitas, cliques no WhatsApp e matrículas o seu site gerou na semana sem gráficos confusos.",
                 },
                 {
                   icon: Instagram,
@@ -147,7 +168,7 @@ export default function NocauteHubHomePage() {
                 {
                   icon: Globe,
                   title: "Domínio Próprio + SSL",
-                  desc: "Use seu domínio próprio (ex: suaacademia.com.br) com HTTPS automático e velocidade global na rede Cloudflare.",
+                  desc: "Conecte seu domínio .com.br com HTTPS automático e velocidade extrema no 4G via rede Cloudflare.",
                 },
               ].map((item) => {
                 const Icon = item.icon;
@@ -189,20 +210,23 @@ export default function NocauteHubHomePage() {
                 {
                   step: "01",
                   title: "Montamos sua Demo",
-                  desc: "Aplicamos seu logotipo, cor primária, modalidades e horários em uma URL de demonstração exclusiva.",
+                  desc: "Aplicamos seu logotipo, cor principal, modalidades e horários em uma demonstração exclusiva para você aprovar.",
                 },
                 {
                   step: "02",
-                  title: "Conectamos seu Domínio",
-                  desc: "Ativamos seu domínio próprio ou subdomínio com certificado SSL automático e Meta Pixel configurado.",
+                  title: "Publicamos no Ar",
+                  desc: "Ativamos seu subdomínio ou domínio próprio .com.br com SSL automático e otimização para buscas do seu bairro.",
                 },
                 {
                   step: "03",
                   title: "Alunos no WhatsApp",
-                  desc: "Você acompanha visitas, leads e edita horários com total autonomia direto pelo Painel do Cliente.",
+                  desc: "Você acompanha visitas, pessoas interessadas e atualiza horários sozinho direto pelo Painel do Dono.",
                 },
               ].map((s) => (
-                <div key={s.step} className="glass-card rounded-2xl p-6 space-y-3">
+                <div
+                  key={s.step}
+                  className="glass-card rounded-2xl p-6 space-y-3"
+                >
                   <span className="font-display text-4xl font-bold text-rose-500/70">
                     {s.step}
                   </span>
@@ -218,99 +242,157 @@ export default function NocauteHubHomePage() {
           </div>
         </section>
 
-        {/* PLANOS */}
-        <section id="planos" className="py-16 sm:py-24 border-t border-white/5 bg-[#101012]">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-12">
-            <div className="text-center max-w-2xl mx-auto">
+        {/* TABELA COMPARATIVA DE PLANOS (EXATA CONFORME ESPECIFICAÇÃO) */}
+        <section
+          id="planos"
+          className="py-16 sm:py-24 border-t border-white/5 bg-[#101012]"
+        >
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-10">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-rose-400">
-                Planos
+                Planos & Benefícios
               </span>
-              <h2 className="font-display text-3xl sm:text-5xl uppercase text-white mt-2">
-                Escolha o plano ideal para sua academia
+              <h2 className="font-display text-3xl sm:text-5xl uppercase text-white">
+                Plano Essencial vs. Plano Pro
               </h2>
-              <p className="text-sm text-neutral-400 mt-2">
-                Sem taxa de desenvolvimento artesanal. Estrutura profissional sempre atualizada.
+              <p className="text-sm text-neutral-400">
+                Compare exatamente o que está incluso em cada plano e escolha o
+                melhor momento da sua academia.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Plano Essencial */}
-              <div className="glass-card rounded-3xl p-7 sm:p-8 flex flex-col justify-between gap-6">
-                <div className="space-y-4">
-                  <span className="text-xs font-bold uppercase tracking-widest text-neutral-400">
-                    Plano Essencial
-                  </span>
-                  <h3 className="font-display text-3xl uppercase text-white">
-                    Presença Profissional
-                  </h3>
-                  <p className="text-sm text-neutral-400">
-                    Para academias que querem sair do amadorismo e ter um site rápido focado em WhatsApp.
-                  </p>
-                  <ul className="space-y-2.5 pt-2 text-sm text-neutral-300">
-                    {[
-                      "Site completo em 11 seções Dark Mode",
-                      "Botão de WhatsApp com mensagem contextual",
-                      "Subdomínio grátis ou Domínio Próprio com SSL",
-                      "Otimização automática de fotos (.webp)",
-                      "SEO Local (Schema.org ExerciseGym)",
-                    ].map((feat) => (
-                      <li key={feat} className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </li>
+            <div className="glass-card rounded-3xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/[0.03]">
+                      <th className="p-4 sm:p-5 text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-300">
+                        Benefício
+                      </th>
+                      <th className="p-4 sm:p-5 text-center text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-200 w-44 sm:w-56">
+                        Plano Essencial
+                      </th>
+                      <th className="p-4 sm:p-5 text-center text-xs sm:text-sm font-bold uppercase tracking-wider text-white bg-rose-600/15 border-l border-rose-500/25 w-48 sm:w-64">
+                        <span className="inline-flex items-center gap-1.5 text-rose-400 block text-[10px] mb-1">
+                          <Sparkles className="w-3 h-3" />
+                          RECOMENDADO
+                        </span>
+                        <span className="block">Plano Pro</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-xs sm:text-sm">
+                    {PLAN_COMPARISON_ROWS.map((row) => (
+                      <tr
+                        key={row.feature}
+                        className="hover:bg-white/[0.02] transition"
+                      >
+                        <td className="p-4 sm:px-5 text-neutral-200 font-medium leading-snug">
+                          {row.feature}
+                        </td>
+                        <td className="p-4 text-center">
+                          {typeof row.essencial === "boolean" ? (
+                            row.essencial ? (
+                              <span className="inline-flex w-7 h-7 rounded-full bg-emerald-500/15 text-emerald-400 items-center justify-center">
+                                <Check className="w-4 h-4" />
+                              </span>
+                            ) : (
+                              <span className="inline-flex w-7 h-7 rounded-full bg-white/5 text-neutral-600 items-center justify-center">
+                                <X className="w-4 h-4" />
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-xs text-neutral-300">
+                              {row.essencial}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-center bg-rose-600/[0.06] border-l border-rose-500/15">
+                          {typeof row.pro === "boolean" ? (
+                            row.pro ? (
+                              <span className="inline-flex w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 items-center justify-center">
+                                <Check className="w-4 h-4" />
+                              </span>
+                            ) : (
+                              <span className="inline-flex w-7 h-7 rounded-full bg-white/5 text-neutral-600 items-center justify-center">
+                                <X className="w-4 h-4" />
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-xs font-semibold text-white">
+                              {row.pro}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
                     ))}
-                  </ul>
-                </div>
-
-                <Link
-                  href="/sites/nocaute-fight-club"
-                  className="w-full py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-sm uppercase tracking-wider text-center transition"
-                >
-                  Ver Demonstração
-                </Link>
+                  </tbody>
+                </table>
               </div>
 
-              {/* Plano Pro */}
-              <div className="rounded-3xl p-7 sm:p-8 bg-gradient-to-br from-rose-600/20 via-[#141416] to-[#0C0C0C] border border-rose-500/40 flex flex-col justify-between gap-6 relative">
-                <span className="absolute top-5 right-5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-600 text-white inline-flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Mais escolhido
-                </span>
-
-                <div className="space-y-4">
-                  <span className="text-xs font-bold uppercase tracking-widest text-rose-400">
-                    Plano Pro
-                  </span>
-                  <h3 className="font-display text-3xl uppercase text-white">
-                    Máquina de Matrículas
-                  </h3>
-                  <p className="text-sm text-neutral-300">
-                    Tudo do Essencial + automação completa de conversão, autonomia e prova de ROI.
-                  </p>
-                  <ul className="space-y-2.5 pt-2 text-sm text-neutral-200">
-                    {[
-                      "Grade de Horários Interativa com filtros",
-                      "Mini-Funil de WhatsApp (2 etapas) + Mini-CRM",
-                      "Painel do Cliente com Editor Visual Ao Vivo",
-                      "Analytics Semanal (Visitas, Cliques e Conversão)",
-                      "Link na Bio Nativo (/links) + Stories 1080×1920",
-                      "Meta Pixel + Google Tag Manager + Presets de Hero",
-                    ].map((feat) => (
-                      <li key={feat} className="flex items-start gap-2.5">
-                        <Zap className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <Link
-                  href="/sites/nocaute-fight-club"
-                  className="btn-shimmer w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm uppercase tracking-wider text-center transition shadow-xl shadow-rose-600/25"
+              <div className="p-5 sm:p-6 border-t border-white/10 bg-black/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs sm:text-sm text-neutral-300">
+                  Quer ver como ficaria o site da{" "}
+                  <strong className="text-white">sua academia</strong> antes de
+                  fechar? Montamos uma demonstração gratuita.
+                </p>
+                <a
+                  href={waCommercialUrl}
+                  target={salesWa ? "_blank" : undefined}
+                  rel={salesWa ? "noreferrer" : undefined}
+                  className="btn-shimmer shrink-0 w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.97] text-white font-bold text-xs sm:text-sm uppercase tracking-wider inline-flex items-center justify-center gap-2 shadow-lg shadow-rose-600/25 transition"
                 >
-                  Explorar Site Demo Pro
-                </Link>
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Solicitar Demo Gratuita</span>
+                </a>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ COMERCIAL */}
+        <section id="faq" className="py-16 sm:py-24">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
+            <div className="text-center">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-rose-400">
+                Dúvidas Frequentes
+              </span>
+              <h2 className="font-display text-3xl sm:text-5xl uppercase text-white mt-2">
+                Perguntas de donos de academia
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                {
+                  q: "Preciso entender de tecnologia para atualizar meus horários?",
+                  a: "Não! Quem sabe usar WhatsApp e Instagram consegue alterar horários, avisos, textos e fotos sozinho pelo Painel do Dono em segundos.",
+                },
+                {
+                  q: "Em quanto tempo o site da minha academia fica no ar?",
+                  a: "Em poucos minutos montamos a demonstração com a identidade da sua academia e, após sua aprovação, publicamos no mesmo dia.",
+                },
+                {
+                  q: "Já tenho um domínio .com.br, posso usar?",
+                  a: "Sim! No Plano Pro você conecta seu domínio próprio (Registro.br, Hostinger, GoDaddy) em 3 passos com cadeado SSL automático.",
+                },
+                {
+                  q: "Posso começar no Essencial e subir para o Pro depois?",
+                  a: "Com certeza! A mudança de plano é instantânea, liberando Mini-Funil, Link na Bio, Stories e Painel de Resultados na hora.",
+                },
+              ].map((item) => (
+                <div
+                  key={item.q}
+                  className="glass-card rounded-2xl p-5 space-y-2"
+                >
+                  <h3 className="font-semibold text-sm sm:text-base text-white">
+                    {item.q}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    {item.a}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -319,15 +401,25 @@ export default function NocauteHubHomePage() {
       <footer className="border-t border-white/10 py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
           <p>
-            © {new Date().getFullYear()} Nocaute Hub • Plataforma Multi-Tenant para Academias de Artes Marciais
+            © {new Date().getFullYear()} Nocaute Hub • Plataforma Multi-Tenant
+            para Academias de Artes Marciais
           </p>
-          <Link
-            href="/master/login"
-            className="inline-flex items-center gap-1.5 text-neutral-400 hover:text-white transition"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Acesso Administrativo</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/sites/ftm/links"
+              className="inline-flex items-center gap-1 text-neutral-400 hover:text-white transition"
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              <span>Demo Link na Bio</span>
+            </Link>
+            <Link
+              href="/master/login"
+              className="inline-flex items-center gap-1.5 text-neutral-400 hover:text-white transition"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Acesso Administrativo</span>
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

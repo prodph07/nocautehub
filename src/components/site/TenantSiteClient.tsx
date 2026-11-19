@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import type { AmenityItem, TargetAudienceItem, TenantWithRelations } from "@/types/tenant";
 import { hexToRgbTriplet } from "@/lib/colors";
+import { getPlanCapabilities } from "@/lib/plans";
 import { ScrollReveal } from "./ScrollReveal";
 import { AnimatedCounter } from "./AnimatedCounter";
 import { InteractiveSchedule } from "./InteractiveSchedule";
@@ -89,10 +90,24 @@ export function TenantSiteClient({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const caps = getPlanCapabilities(tenant.plan_tier);
+
   const openFunnel = (modalityName?: string) => {
+    setMobileMenuOpen(false);
+    if (!caps.miniFunnel) {
+      const cleanPhone = tenant.whatsapp_number.replace(/\D/g, "");
+      const msg = modalityName
+        ? `Olá! Vim pelo site da ${tenant.name} e quero agendar uma aula experimental de ${modalityName}.`
+        : `Olá! Vim pelo site da ${tenant.name} e quero agendar minha aula experimental gratuita.`;
+      window.open(
+        `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+      return;
+    }
     setFunnelModality(modalityName);
     setFunnelOpen(true);
-    setMobileMenuOpen(false);
   };
 
   const primaryRgb = hexToRgbTriplet(tenant.theme_config?.primary || "#E11D48");
@@ -138,8 +153,8 @@ export function TenantSiteClient({
 
   return (
     <div style={cssVars} className="min-h-screen bg-[var(--bg)] text-neutral-100">
-      {/* Faixa de Avisos Rápidos (Top Bar Dinâmica) */}
-      {tenant.top_bar_config?.enabled && tenant.top_bar_config.text && (
+      {/* Faixa de Avisos Rápidos (Top Bar Dinâmica - Plano Pro) */}
+      {caps.topBar && tenant.top_bar_config?.enabled && tenant.top_bar_config.text && (
         <div className="bg-brand-primary text-white text-xs sm:text-sm py-2 px-4 text-center font-medium">
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-2">
             <span>{tenant.top_bar_config.text}</span>
@@ -774,6 +789,7 @@ export function TenantSiteClient({
           <InteractiveSchedule
             modalities={tenant.modalities}
             schedules={tenant.schedules}
+            interactive={caps.interactiveSchedule}
             onBookModality={(mod) => openFunnel(mod)}
           />
 

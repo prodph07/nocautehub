@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { repository } from "@/lib/repository";
+import { getPlanCapabilities } from "@/lib/plans";
 import { LinkBioClient } from "@/components/site/LinkBioClient";
 import { SuspendedScreen } from "@/components/site/SuspendedScreen";
 
@@ -33,6 +34,9 @@ export default async function TenantLinksPage({ params }: LinksPageProps) {
   if (!tenant) notFound();
   if (tenant.status === "suspended") {
     return <SuspendedScreen academyName={tenant.name} />;
+  }
+  if (!getPlanCapabilities(tenant.plan_tier).linkBio) {
+    redirect(`/sites/${tenant.slug}`);
   }
 
   return <LinkBioClient tenant={tenant} />;

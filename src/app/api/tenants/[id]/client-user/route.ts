@@ -59,6 +59,7 @@ export async function POST(
         email: cleanEmail,
         password: String(password),
         email_confirm: true,
+        app_metadata: { role: "client", tenant_id: tenantId },
       });
 
     if (createErr) {
@@ -77,6 +78,7 @@ export async function POST(
       await adminSupabase.auth.admin.updateUserById(userId, {
         password: String(password),
         email_confirm: true,
+        app_metadata: { role: "client", tenant_id: tenantId },
       });
     } else {
       userId = created.user?.id || null;

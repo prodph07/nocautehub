@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getLocalMasterCredentials,
+  isSupabaseUserMaster,
   MASTER_SESSION_COOKIE,
 } from "@/lib/auth";
 import {
@@ -28,15 +29,27 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
+      if (error || !data.user) {
         return NextResponse.json(
           { error: "Credenciais inválidas" },
           { status: 401 }
+        );
+      }
+
+      const isMaster = await isSupabaseUserMaster(data.user);
+      if (!isMaster) {
+        await supabase.auth.signOut();
+        return NextResponse.json(
+          {
+            error:
+              "Esta conta pertence ao Painel da Academia (/admin) e não possui permissão Master.",
+          },
+          { status: 403 }
         );
       }
 

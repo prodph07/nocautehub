@@ -13,9 +13,21 @@ import {
 
 export async function POST(req: NextRequest) {
   const masterAuthed = await isMasterAuthenticated();
-  const cookieStore = await cookies();
-  const clientCookie = cookieStore.get(CLIENT_SESSION_COOKIE)?.value;
-  if (!masterAuthed && !clientCookie?.startsWith("tenant:")) {
+  let clientAuthed = false;
+
+  if (!masterAuthed) {
+    if (isSupabaseConfigured()) {
+      const supabase = await createServerSupabase();
+      const { data } = (await supabase?.auth.getUser()) ?? { data: { user: null } };
+      clientAuthed = Boolean(data.user);
+    } else {
+      const cookieStore = await cookies();
+      const clientCookie = cookieStore.get(CLIENT_SESSION_COOKIE)?.value;
+      clientAuthed = Boolean(clientCookie?.startsWith("tenant:"));
+    }
+  }
+
+  if (!masterAuthed && !clientAuthed) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
