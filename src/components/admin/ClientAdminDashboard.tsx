@@ -56,6 +56,16 @@ export function ClientAdminDashboard({
   const [tab, setTab] = useState<ClientTab>("overview");
   const [saving, setSaving] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
+  const [copiedBio, setCopiedBio] = useState(false);
+
+  const handleCopyBioLink = () => {
+    const url = tenant.custom_domain
+      ? `https://${tenant.custom_domain}/links`
+      : `${window.location.origin}/sites/${tenant.slug}/links`;
+    navigator.clipboard.writeText(url);
+    setCopiedBio(true);
+    setTimeout(() => setCopiedBio(false), 2500);
+  };
 
   const primaryColor = tenant.theme_config?.primary || "#E11D48";
   const cssVars = {
@@ -166,11 +176,11 @@ export function ClientAdminDashboard({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 overflow-x-auto">
           <div className="flex gap-1 border-t border-white/5 py-2 min-w-max">
             {[
-              { key: "overview" as const, label: "Analytics & Avisos", icon: BarChart3 },
+              { key: "overview" as const, label: "Início (Resumo)", icon: BarChart3 },
               { key: "editor" as const, label: "Editar Meu Site", icon: Palette },
-              { key: "crm" as const, label: `Mini-CRM de Leads (${totalLeads})`, icon: Users },
-              { key: "horarios" as const, label: "Horários & Stories", icon: Calendar },
-              { key: "dominio" as const, label: "Domínio Próprio", icon: Globe },
+              { key: "crm" as const, label: `Pessoas Interessadas (${totalLeads})`, icon: Users },
+              { key: "horarios" as const, label: "Horários e Aulas", icon: Calendar },
+              { key: "dominio" as const, label: "Meu Domínio (.com.br)", icon: Globe },
             ].map((item) => {
               const Icon = item.icon;
               const active = tab === item.key;
@@ -217,13 +227,32 @@ export function ClientAdminDashboard({
            =================================================================== */}
         {tab === "overview" && (
           <div className="space-y-6">
-            <div>
-              <h2 className="font-display text-2xl uppercase text-white">
-                Desempenho dos Últimos 7 Dias
-              </h2>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                Apenas os 3 indicadores que importam para encher seu tatame.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="font-display text-2xl uppercase text-white">
+                  Desempenho dos Últimos 7 Dias
+                </h2>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  Apenas os 3 indicadores que importam para encher seu tatame.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyBioLink}
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-bold text-white inline-flex items-center justify-center gap-2 active:scale-[0.97] transition"
+              >
+                {copiedBio ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Link copiado para o Instagram!</span>
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="w-4 h-4 text-brand-primary" />
+                    <span>Copiar link para o Instagram</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* 3 Indicadores Essenciais da Semana */}
@@ -424,7 +453,7 @@ export function ClientAdminDashboard({
           <div className="space-y-6">
             <div>
               <h2 className="font-display text-2xl uppercase text-white">
-                Mini-CRM de Leads (Prova de ROI)
+                Pessoas Interessadas
               </h2>
               <p className="text-xs text-neutral-400 mt-0.5">
                 Acompanhe cada pessoa que pediu aula experimental pelo site e atualize o status em 1 clique.
@@ -499,8 +528,8 @@ export function ClientAdminDashboard({
                         {(
                           [
                             { key: "novo", label: "Novo" },
-                            { key: "agendado", label: "Aula Agendada" },
-                            { key: "matriculado", label: "Matriculado" },
+                            { key: "agendado", label: "Veio treinar" },
+                            { key: "matriculado", label: "Matriculou" },
                           ] as const
                         ).map((step) => {
                           const active = lead.status === step.key;

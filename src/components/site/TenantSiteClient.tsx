@@ -199,17 +199,17 @@ export function TenantSiteClient({
             <button
               type="button"
               onClick={() => openFunnel()}
-              className="btn-shimmer hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-primary text-white font-bold text-xs sm:text-sm uppercase tracking-wide hover:brightness-110 transition shadow-lg shadow-brand-primary/25"
+              className="btn-shimmer inline-flex items-center gap-1.5 min-h-[44px] px-3.5 sm:px-4 py-2 rounded-xl bg-brand-primary text-white font-bold text-xs sm:text-sm uppercase tracking-wide hover:brightness-110 active:scale-[0.97] transition shadow-lg shadow-brand-primary/25"
             >
-              <span>Aula Gratuita</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Aula Grátis</span>
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               type="button"
               onClick={() => setMobileMenuOpen((v) => !v)}
               aria-label="Abrir menu"
-              className="lg:hidden w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white"
+              className="lg:hidden w-11 h-11 rounded-xl bg-white/5 border border-white/10 active:scale-[0.95] flex items-center justify-center text-white transition"
             >
               {mobileMenuOpen ? (
                 <X className="w-5 h-5" />
@@ -405,9 +405,19 @@ export function TenantSiteClient({
           )}
         </div>
 
-        {/* Gradientes escuros para contraste e fusão suave */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0C0C0C] via-[#0C0C0C]/80 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0C] via-transparent to-[#0C0C0C]/50" />
+        {/* Gradientes escuros + Glow radial controlado (12%) */}
+        <div
+          className="absolute -top-24 -left-24 w-[480px] h-[480px] rounded-full blur-[120px] opacity-15 pointer-events-none"
+          style={{ backgroundColor: "var(--primary)" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#09090B] via-[#09090B]/80 to-transparent" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to top, #09090B 10%, rgba(9,9,11,0.6) 55%, transparent 100%)",
+          }}
+        />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 w-full">
           <div className="max-w-2xl space-y-6">
@@ -524,10 +534,10 @@ export function TenantSiteClient({
           <ScrollReveal>
             <div className="max-w-2xl mb-10 sm:mb-14">
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">
-                Modalidades
+                Escolha seu treino
               </span>
               <h2 className="font-display text-3xl sm:text-5xl uppercase text-white mt-2">
-                Escolha sua arte marcial e comece hoje
+                Modalidades para todos os objetivos
               </h2>
               <p className="text-neutral-400 mt-3 text-sm sm:text-base">
                 Aulas estruturadas por nível para você evoluir com técnica, segurança e condicionamento real.
@@ -750,7 +760,7 @@ export function TenantSiteClient({
           <ScrollReveal>
             <div className="max-w-2xl mb-10">
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">
-                Grade de Horários
+                Horários dos Treinos
               </span>
               <h2 className="font-display text-3xl sm:text-5xl uppercase text-white mt-2">
                 Encontre o horário ideal na sua rotina
@@ -958,7 +968,11 @@ export function TenantSiteClient({
 
           {/* CTA de Encerramento da Página */}
           <ScrollReveal className="mt-14">
-            <div className="relative rounded-3xl overflow-hidden border border-brand-primary/40 bg-gradient-to-br from-brand-primary/20 via-[#141416] to-[#0C0C0C] p-8 sm:p-12 text-center space-y-5">
+            <div className="relative rounded-3xl overflow-hidden border border-brand-primary/40 border-t-white/20 bg-gradient-to-br from-brand-primary/20 via-[#141417] to-[#09090B] p-8 sm:p-12 text-center space-y-5">
+              <div
+                className="absolute -top-24 left-1/2 -translate-x-1/2 w-[420px] h-[260px] rounded-full blur-[120px] opacity-20 pointer-events-none"
+                style={{ backgroundColor: "var(--primary)" }}
+              />
               <span className="inline-block text-xs font-bold uppercase tracking-[0.22em] text-brand-primary">
                 Dê o primeiro passo hoje
               </span>

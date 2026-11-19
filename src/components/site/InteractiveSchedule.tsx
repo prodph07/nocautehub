@@ -17,12 +17,32 @@ interface InteractiveScheduleProps {
   onBookModality: (modalityName: string) => void;
 }
 
+const JS_DAY_TO_KEY: DayOfWeek[] = [
+  "dom",
+  "seg",
+  "ter",
+  "qua",
+  "qui",
+  "sex",
+  "sab",
+];
+
 export function InteractiveSchedule({
   modalities,
   schedules,
   onBookModality,
 }: InteractiveScheduleProps) {
-  const [selectedDay, setSelectedDay] = useState<DayOfWeek | "all">("all");
+  const activeDays = useMemo(() => {
+    const set = new Set(schedules.map((s) => s.day_of_week));
+    return DAYS_ORDER.filter((d) => set.has(d));
+  }, [schedules]);
+
+  const defaultDay = useMemo<DayOfWeek | "all">(() => {
+    const todayKey = JS_DAY_TO_KEY[new Date().getDay()];
+    return activeDays.includes(todayKey) ? todayKey : activeDays[0] || "all";
+  }, [activeDays]);
+
+  const [selectedDay, setSelectedDay] = useState<DayOfWeek | "all">(defaultDay);
   const [selectedModality, setSelectedModality] = useState<string>("all");
 
   const modalityMap = useMemo(() => {
@@ -30,11 +50,6 @@ export function InteractiveSchedule({
     modalities.forEach((m) => map.set(m.id, m));
     return map;
   }, [modalities]);
-
-  const activeDays = useMemo(() => {
-    const set = new Set(schedules.map((s) => s.day_of_week));
-    return DAYS_ORDER.filter((d) => set.has(d));
-  }, [schedules]);
 
   const filtered = useMemo(() => {
     return schedules
@@ -71,24 +86,13 @@ export function InteractiveSchedule({
             <Calendar className="w-4 h-4 text-brand-primary" />
             <span>Filtrar por Dia</span>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => setSelectedDay("all")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                selectedDay === "all"
-                  ? "bg-brand-primary text-white shadow-md shadow-brand-primary/25"
-                  : "bg-white/5 text-neutral-300 hover:bg-white/10"
-              }`}
-            >
-              Todos
-            </button>
+          <div className="flex flex-wrap gap-2">
             {activeDays.map((day) => (
               <button
                 key={day}
                 type="button"
                 onClick={() => setSelectedDay(day)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold active:scale-[0.97] transition duration-200 ${
                   selectedDay === day
                     ? "bg-brand-primary text-white shadow-md shadow-brand-primary/25"
                     : "bg-white/5 text-neutral-300 hover:bg-white/10"
@@ -97,6 +101,17 @@ export function InteractiveSchedule({
                 {DAY_SHORT_LABELS[day]}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => setSelectedDay("all")}
+              className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold active:scale-[0.97] transition duration-200 ${
+                selectedDay === "all"
+                  ? "bg-brand-primary text-white shadow-md shadow-brand-primary/25"
+                  : "bg-white/5 text-neutral-300 hover:bg-white/10"
+              }`}
+            >
+              Semana toda
+            </button>
           </div>
         </div>
 
@@ -194,10 +209,10 @@ export function InteractiveSchedule({
                       <button
                         type="button"
                         onClick={() => onBookModality(modName)}
-                        className="shrink-0 px-3 py-2 rounded-lg bg-white/5 hover:bg-brand-primary text-neutral-200 hover:text-white text-xs font-semibold transition flex items-center gap-1"
+                        className="shrink-0 min-h-[44px] px-3.5 py-2 rounded-xl bg-white/5 hover:bg-brand-primary active:scale-[0.97] text-neutral-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5"
                       >
-                        <span className="hidden sm:inline">Agendar</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Testar aula</span>
+                        <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
                   );

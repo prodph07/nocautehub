@@ -34,10 +34,25 @@ body {
 }
 
 .glass-card {
-  background: rgba(24, 24, 27, 0.58);
+  background: rgba(20, 20, 23, 0.68);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Evita zoom automático no iOS Safari ao tocar em inputs no mobile */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="time"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* GPU-composited Scroll Reveal */

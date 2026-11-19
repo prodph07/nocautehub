@@ -105,6 +105,17 @@ export function TenantEditorClient({
     [tenant, savedSnapshot]
   );
 
+  // Alerta ao tentar sair da tela com alterações pendentes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   const handleSave = async () => {
     setSaving(true);
     setError("");
@@ -764,14 +775,15 @@ export function TenantEditorClient({
                       </span>
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
+                          if (!confirm(`Tem certeza que deseja apagar a modalidade "${mod.name}"?`)) return;
                           setTenant({
                             ...tenant,
                             modalities: tenant.modalities.filter(
                               (m) => m.id !== mod.id
                             ),
-                          })
-                        }
+                          });
+                        }}
                         className="text-neutral-500 hover:text-rose-400"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1242,14 +1254,15 @@ export function TenantEditorClient({
                           />
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
+                              if (!confirm(`Tem certeza que deseja apagar a aula das ${item.start_time}?`)) return;
                               setTenant({
                                 ...tenant,
                                 schedules: tenant.schedules.filter(
                                   (s) => s.id !== item.id
                                 ),
-                              })
-                            }
+                              });
+                            }}
                             className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-600/30 text-neutral-400 hover:text-rose-300"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1307,6 +1320,14 @@ export function TenantEditorClient({
                     Adicionar
                   </button>
                 </div>
+
+                {tenant.testimonials.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6 text-center space-y-3">
+                    <p className="text-xs sm:text-sm text-neutral-300">
+                      Seus alunos elogiam a academia? Adicione 3 avaliações reais aqui para passar ainda mais confiança para iniciantes.
+                    </p>
+                  </div>
+                )}
 
                 {tenant.testimonials.map((t, idx) => (
                   <div key={t.id} className="glass-card rounded-2xl p-4 space-y-2.5">
@@ -1677,33 +1698,49 @@ export function TenantEditorClient({
 
                 <div className="glass-card rounded-2xl p-5 space-y-3">
                   <h2 className="font-display text-lg uppercase text-white">
-                    Rastreamento & Redes Sociais
+                    {isClientMode
+                      ? "Anúncios (Instagram/Facebook) & Redes Sociais"
+                      : "Rastreamento & Redes Sociais"}
                   </h2>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <input
-                      type="text"
-                      value={tenant.pixel_id || ""}
-                      onChange={(e) =>
-                        setTenant({
-                          ...tenant,
-                          pixel_id: e.target.value.trim() || null,
-                        })
-                      }
-                      placeholder="Meta Pixel ID"
-                      className="px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
-                    />
-                    <input
-                      type="text"
-                      value={tenant.gtm_id || ""}
-                      onChange={(e) =>
-                        setTenant({
-                          ...tenant,
-                          gtm_id: e.target.value.trim() || null,
-                        })
-                      }
-                      placeholder="GTM ID (GTM-XXXX)"
-                      className="px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] text-neutral-400 mb-1">
+                        {isClientMode
+                          ? "Conectar anúncios do Instagram/Facebook (opcional)"
+                          : "Meta Pixel ID (opcional)"}
+                      </label>
+                      <input
+                        type="text"
+                        value={tenant.pixel_id || ""}
+                        onChange={(e) =>
+                          setTenant({
+                            ...tenant,
+                            pixel_id: e.target.value.trim() || null,
+                          })
+                        }
+                        placeholder="Ex: 123456789012345"
+                        className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-neutral-400 mb-1">
+                        {isClientMode
+                          ? "Google Tag Manager (opcional)"
+                          : "GTM ID (GTM-XXXX)"}
+                      </label>
+                      <input
+                        type="text"
+                        value={tenant.gtm_id || ""}
+                        onChange={(e) =>
+                          setTenant({
+                            ...tenant,
+                            gtm_id: e.target.value.trim() || null,
+                          })
+                        }
+                        placeholder="GTM-XXXXXXX"
+                        className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
+                      />
+                    </div>
                   </div>
                   <input
                     type="text"

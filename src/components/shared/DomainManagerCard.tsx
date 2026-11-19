@@ -139,7 +139,7 @@ export function DomainManagerCard({
           </div>
           <div>
             <h3 className="font-display text-lg uppercase text-white leading-none">
-              Domínio Próprio & SSL Automático
+              Usar meu domínio próprio (.com.br)
             </h3>
             <p className="text-xs text-neutral-400 mt-1">
               Subdomínio gratuito ativo:{" "}
