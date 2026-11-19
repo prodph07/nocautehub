@@ -43,7 +43,7 @@ export function DomainManagerCard({
 
   const cnameTarget =
     process.env.NEXT_PUBLIC_CLOUDFLARE_CNAME_TARGET ||
-    "cname.nocautehub.com.br";
+    "cname.nocautehub.com";
 
   const handleCopyCname = () => {
     navigator.clipboard.writeText(cnameTarget);
@@ -143,7 +143,7 @@ export function DomainManagerCard({
             </h3>
             <p className="text-xs text-neutral-400 mt-1">
               Subdomínio gratuito ativo:{" "}
-              <code className="text-neutral-200">{slug}.nocautehub.com.br</code>
+              <code className="text-neutral-200">{slug}.nocautehub.com</code>
             </p>
           </div>
         </div>

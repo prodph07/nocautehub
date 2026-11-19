@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       tenant: updated,
       cnameTarget:
         process.env.NEXT_PUBLIC_CLOUDFLARE_CNAME_TARGET ||
-        "cname.nocautehub.com.br",
+        "cname.nocautehub.com",
       mode,
     });
   } catch (err) {

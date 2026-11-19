@@ -793,7 +793,7 @@ export function ClientAdminDashboard({
             </h2>
             <p className="text-sm text-neutral-300 leading-relaxed">
               Seu plano atual (<strong>Essencial</strong>) usa o subdomínio gratuito{" "}
-              <code className="text-white">{tenant.slug}.nocautehub.com.br</code>. Faça upgrade para o{" "}
+              <code className="text-white">{tenant.slug}.nocautehub.com</code>. Faça upgrade para o{" "}
               <strong>Plano Pro</strong> para conectar seu domínio próprio com HTTPS automático.
             </p>
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300">

@@ -67,7 +67,7 @@ export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
   },
   {
     feature: "Endereço do site",
-    essencial: "Subdomínio (academia.nocautehub.com.br)",
+    essencial: "Subdomínio (academia.nocautehub.com)",
     pro: "Domínio Próprio (sua-academia.com.br) + SSL",
   },
   {

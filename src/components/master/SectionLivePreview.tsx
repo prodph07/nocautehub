@@ -114,7 +114,7 @@ export function SectionLivePreview({
   } as React.CSSProperties;
 
   const previewUrl =
-    tenant.custom_domain || `${tenant.slug || "sua-academia"}.nocautehub.com.br`;
+    tenant.custom_domain || `${tenant.slug || "sua-academia"}.nocautehub.com`;
 
   const renderFocusedSection = () => {
     switch (activeSection) {

@@ -156,7 +156,7 @@ export function StoriesScheduleGenerator({
       ctx.fillStyle = "#737373";
       ctx.font = "500 22px Inter, sans-serif";
       ctx.fillText(
-        tenant.custom_domain || `${tenant.slug}.nocautehub.com.br`,
+        tenant.custom_domain || `${tenant.slug}.nocautehub.com`,
         width / 2,
         height - 46
       );
