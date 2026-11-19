@@ -42,7 +42,7 @@ export function LinkBioClient({ tenant }: LinkBioClientProps) {
   }, [tenant.id]);
 
   const cleanWa = tenant.whatsapp_number.replace(/\D/g, "");
-  const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent(
+  const waUrl = `https://api.whatsapp.com/send?phone=${cleanWa}&text=${encodeURIComponent(
     `Olá! Vim pelo Link na Bio do Instagram da ${tenant.name} e quero agendar minha aula experimental gratuita.`
   )}`;
 
@@ -67,10 +67,13 @@ export function LinkBioClient({ tenant }: LinkBioClientProps) {
       style={cssVars}
       className="min-h-screen bg-[var(--bg)] text-neutral-100 flex flex-col items-center justify-between px-4 py-10 relative overflow-hidden"
     >
-      {/* Brilho ambiente na cor primária do tenant */}
+      {/* Brilho ambiente leve (radial-gradient sem blur pesado na GPU mobile) */}
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[520px] h-[320px] rounded-full blur-[120px] opacity-20 pointer-events-none"
-        style={{ backgroundColor: "var(--primary)" }}
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 8%, rgb(var(--primary-rgb) / 0.22) 0%, transparent 55%)",
+        }}
       />
 
       <div className="w-full max-w-md space-y-7 relative z-10">

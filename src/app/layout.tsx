@@ -1,5 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0C0C0C",
+};
 
 export const metadata: Metadata = {
   title: "Nocaute Hub — Sites de Alta Conversão para Academias de Luta",

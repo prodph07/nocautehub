@@ -156,9 +156,14 @@ export function WhatsAppFunnelModal({
         ? "uma aula experimental gratuita (ainda estou em dúvida na modalidade)"
         : `minha aula experimental gratuita de *${selectedModality}*`;
     const message = `Olá! Meu nome é ${name.trim()}. Vim pelo site da ${tenantName} e quero agendar ${modalityText} no turno da *${preferredShift}*.`;
-    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
 
-    window.open(waUrl, "_blank", "noopener,noreferrer");
+    // Em mobile/WebView (Instagram/WhatsApp), evita target="_blank" que trava em aba branca
+    if (window.innerWidth < 768) {
+      window.location.href = waUrl;
+    } else {
+      window.open(waUrl, "_blank", "noopener,noreferrer");
+    }
     setSubmitting(false);
     onClose();
   };
@@ -172,7 +177,7 @@ export function WhatsAppFunnelModal({
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-md bg-[#141417] border border-white/10 border-t-white/20 rounded-t-3xl sm:rounded-2xl p-6 sm:p-7 shadow-2xl relative"
+        className="w-full sm:max-w-md max-h-[85dvh] overflow-y-auto bg-[#141417] border border-white/10 border-t-white/20 rounded-t-3xl sm:rounded-2xl p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-7 shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -321,6 +326,9 @@ export function WhatsAppFunnelModal({
                   type="text"
                   required
                   autoFocus
+                  autoCapitalize="words"
+                  autoComplete="name"
+                  enterKeyHint="done"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: João Silva"

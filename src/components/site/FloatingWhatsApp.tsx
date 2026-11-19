@@ -35,9 +35,9 @@ export function FloatingWhatsApp({
 
   return (
     <>
-      {/* MOBILE: Barra Inferior Fixa na Zona do Polegar (aparece após rolar o Hero) */}
+      {/* MOBILE: Barra Inferior Fixa na Zona do Polegar com Safe Area iOS */}
       <div
-        className={`sm:hidden fixed bottom-0 inset-x-0 z-40 p-3 bg-[#0C0C0C]/90 backdrop-blur-md border-t border-white/10 transition-transform duration-300 ${
+        className={`sm:hidden fixed bottom-0 inset-x-0 z-40 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-[#0C0C0C]/92 backdrop-blur-md border-t border-white/10 transition-transform duration-300 ${
           pastHero ? "translate-y-0" : "translate-y-full pointer-events-none"
         }`}
       >

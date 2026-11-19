@@ -128,7 +128,7 @@ export function ClientAdminDashboard({
   };
 
   return (
-    <div style={cssVars} className="min-h-screen bg-[#0C0C0C] text-neutral-100 pb-16">
+    <div style={cssVars} className="min-h-screen bg-[#0C0C0C] text-neutral-100 pb-28 sm:pb-16">
       {/* Header do Painel do Cliente */}
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#101012]/95 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
@@ -189,8 +189,8 @@ export function ClientAdminDashboard({
           </div>
         </div>
 
-        {/* Navegação */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 overflow-x-auto">
+        {/* Navegação Desktop (no mobile usamos Bottom Tab Bar fixa no rodapé) */}
+        <div className="hidden sm:block max-w-6xl mx-auto px-4 sm:px-6 overflow-x-auto">
           <div className="flex gap-1 border-t border-white/5 py-2 min-w-max">
             {[
               { key: "overview" as const, label: "Início (Resumo)", icon: BarChart3 },
@@ -817,6 +817,35 @@ export function ClientAdminDashboard({
           </div>
         )}
       </main>
+
+      {/* MOBILE BOTTOM TAB BAR (Uso na beira do tatame com o polegar + Safe Area iOS) */}
+      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-[#101012]/95 backdrop-blur-md border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
+        <div className="grid grid-cols-5 h-16">
+          {[
+            { key: "overview" as const, label: "Início", icon: BarChart3 },
+            { key: "editor" as const, label: "Site", icon: Palette },
+            { key: "crm" as const, label: "Leads", icon: Users },
+            { key: "horarios" as const, label: "Horários", icon: Calendar },
+            { key: "dominio" as const, label: "Domínio", icon: Globe },
+          ].map((item) => {
+            const Icon = item.icon;
+            const active = tab === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setTab(item.key)}
+                className={`flex flex-col items-center justify-center gap-1 text-[10px] font-semibold active:scale-[0.94] transition ${
+                  active ? "text-brand-primary" : "text-neutral-400"
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

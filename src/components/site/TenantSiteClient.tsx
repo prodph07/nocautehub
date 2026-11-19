@@ -69,6 +69,7 @@ export function TenantSiteClient({
   );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [mapInteractive, setMapInteractive] = useState(false);
 
   useEffect(() => {
     if (isPreview) return;
@@ -84,7 +85,13 @@ export function TenantSiteClient({
   }, [tenant.id, isPreview]);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Desativa Parallax no mobile (<768px) e quando prefers-reduced-motion está ativo
+    if (
+      window.innerWidth < 768 ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
     const onScroll = () => setScrollY(Math.min(window.scrollY, 600));
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -99,11 +106,12 @@ export function TenantSiteClient({
       const msg = modalityName
         ? `Olá! Vim pelo site da ${tenant.name} e quero agendar uma aula experimental de ${modalityName}.`
         : `Olá! Vim pelo site da ${tenant.name} e quero agendar minha aula experimental gratuita.`;
-      window.open(
-        `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
+      if (window.innerWidth < 768) {
+        window.location.href = waUrl;
+      } else {
+        window.open(waUrl, "_blank", "noopener,noreferrer");
+      }
       return;
     }
     setFunnelModality(modalityName);
@@ -144,12 +152,18 @@ export function TenantSiteClient({
       ? tenant.hero_config.marquee_items
       : ["JIU-JITSU", "MUAY THAI", "BOXE", "DISCIPLINA", "DEFESA PESSOAL"];
 
-  const directWaUrl = `https://wa.me/${tenant.whatsapp_number.replace(
+  const directWaUrl = `https://api.whatsapp.com/send?phone=${tenant.whatsapp_number.replace(
     /\D/g,
     ""
-  )}?text=${encodeURIComponent(
+  )}&text=${encodeURIComponent(
     `Olá! Vim pelo site da ${tenant.name} e gostaria de informações sobre a aula experimental gratuita.`
   )}`;
+
+  const fullAddressQuery = encodeURIComponent(
+    `${tenant.name} ${tenant.address} ${tenant.neighborhood} ${tenant.city}`
+  );
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${fullAddressQuery}`;
+  const wazeUrl = `https://waze.com/ul?q=${fullAddressQuery}&navigate=yes`;
 
   return (
     <div style={cssVars} className="min-h-screen bg-[var(--bg)] text-neutral-100">
@@ -389,8 +403,8 @@ export function TenantSiteClient({
           </div>
         </section>
       ) : (
-        <section className="relative min-h-[86vh] sm:min-h-[88vh] flex items-center overflow-hidden">
-        {/* Background Media com Parallax Sutil e Vinheta */}
+        <section className="relative min-h-[88svh] sm:min-h-[88vh] flex items-center overflow-hidden">
+        {/* Background Media com Parallax Sutil (apenas Desktop) e Vinheta */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -415,15 +429,18 @@ export function TenantSiteClient({
                 "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?auto=format&fit=crop&w=1800&q=85"
               }
               alt={tenant.name}
+              fetchPriority="high"
               className="w-full h-full object-cover opacity-50"
             />
           )}
         </div>
 
-        {/* Gradientes escuros + Glow radial controlado (12%) */}
+        {/* Gradientes escuros + Glow radial leve (zero blur pesado na GPU mobile) */}
         <div
-          className="absolute -top-24 -left-24 w-[480px] h-[480px] rounded-full blur-[120px] opacity-15 pointer-events-none"
-          style={{ backgroundColor: "var(--primary)" }}
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 18% 22%, rgb(var(--primary-rgb) / 0.18) 0%, transparent 58%)`,
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#09090B] via-[#09090B]/80 to-transparent" />
         <div
@@ -434,8 +451,8 @@ export function TenantSiteClient({
           }}
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 w-full">
-          <div className="max-w-2xl space-y-6">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-24 w-full">
+          <div className="max-w-2xl space-y-5 sm:space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-card text-xs font-semibold uppercase tracking-widest text-neutral-200">
               <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
               <span>
@@ -444,7 +461,7 @@ export function TenantSiteClient({
               </span>
             </div>
 
-            <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-bold uppercase tracking-tight text-white leading-[0.98]">
+            <h1 className="font-display text-[clamp(2.25rem,8.5vw,4.5rem)] font-bold uppercase tracking-tight text-white leading-[0.98]">
               {tenant.hero_config?.headline ||
                 "TRANSFORME SEU CORPO E SUA MENTE NO TATAME"}
             </h1>
@@ -560,9 +577,13 @@ export function TenantSiteClient({
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-3 -mx-4 px-4 no-scrollbar sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
             {tenant.modalities.map((mod, idx) => (
-              <ScrollReveal key={mod.id} delayMs={idx * 60}>
+              <ScrollReveal
+                key={mod.id}
+                delayMs={idx * 60}
+                className="w-[84vw] shrink-0 snap-start sm:w-auto"
+              >
                 <article className="group h-full flex flex-col rounded-2xl overflow-hidden bg-[var(--surface)] border border-white/10 hover:border-brand-primary transition-all duration-300 shadow-lg hover:shadow-brand-primary/10">
                   <div className="relative aspect-[16/10] overflow-hidden bg-neutral-900">
                     <img
@@ -697,9 +718,13 @@ export function TenantSiteClient({
               </div>
             </ScrollReveal>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-3 -mx-4 px-4 no-scrollbar sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:grid md:grid-cols-3 sm:gap-6">
               {tenant.instructors.map((inst, idx) => (
-                <ScrollReveal key={inst.id} delayMs={idx * 80}>
+                <ScrollReveal
+                  key={inst.id}
+                  delayMs={idx * 80}
+                  className="w-[84vw] shrink-0 snap-start sm:w-auto"
+                >
                   <div className="rounded-2xl overflow-hidden bg-[var(--surface)] border border-white/10 h-full flex flex-col">
                     <div className="relative aspect-[4/4] overflow-hidden bg-neutral-900">
                       <img
@@ -835,9 +860,13 @@ export function TenantSiteClient({
               </div>
             </ScrollReveal>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-3 -mx-4 px-4 no-scrollbar sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:grid md:grid-cols-3 sm:gap-6">
               {tenant.testimonials.map((t, idx) => (
-                <ScrollReveal key={t.id} delayMs={idx * 70}>
+                <ScrollReveal
+                  key={t.id}
+                  delayMs={idx * 70}
+                  className="w-[84vw] shrink-0 snap-start sm:w-auto"
+                >
                   <div className="glass-card rounded-2xl p-6 h-full flex flex-col justify-between gap-4">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -939,17 +968,53 @@ export function TenantSiteClient({
                     })}
                   </div>
                 )}
+                {/* Botões GPS Nativos (Google Maps e Waze) */}
+                <div className="grid grid-cols-2 gap-2.5 pt-2">
+                  <a
+                    href={googleMapsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-h-[48px] px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 active:scale-[0.97] border border-white/15 text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 transition"
+                  >
+                    <MapPin className="w-4 h-4 text-brand-primary shrink-0" />
+                    <span>Google Maps</span>
+                  </a>
+                  <a
+                    href={wazeUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-h-[48px] px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 active:scale-[0.97] border border-white/15 text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 transition"
+                  >
+                    <ArrowRight className="w-4 h-4 text-sky-400 shrink-0" />
+                    <span>Abrir no Waze</span>
+                  </a>
+                </div>
               </div>
 
-              <div className="lg:col-span-7 min-h-[320px] sm:min-h-[400px] rounded-2xl overflow-hidden border border-white/10 bg-[#141414]">
+              <div className="lg:col-span-7 relative min-h-[300px] sm:min-h-[400px] rounded-2xl overflow-hidden border border-white/10 bg-[#141414]">
                 {tenant.google_maps_embed ? (
-                  <iframe
-                    src={tenant.google_maps_embed}
-                    title={`Mapa de ${tenant.name}`}
-                    className="w-full h-full min-h-[320px] sm:min-h-[400px] grayscale-[25%] contrast-[1.05]"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
+                  <>
+                    <iframe
+                      src={tenant.google_maps_embed}
+                      title={`Mapa de ${tenant.name}`}
+                      className={`w-full h-full min-h-[300px] sm:min-h-[400px] grayscale-[25%] contrast-[1.05] ${
+                        mapInteractive ? "pointer-events-auto" : "pointer-events-none sm:pointer-events-auto"
+                      }`}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                    {!mapInteractive && (
+                      <button
+                        type="button"
+                        onClick={() => setMapInteractive(true)}
+                        className="sm:hidden absolute inset-0 bg-black/25 flex items-end justify-center p-4"
+                      >
+                        <span className="px-4 py-2 rounded-full bg-black/80 backdrop-blur-md border border-white/15 text-xs font-semibold text-white">
+                          Tocar para interagir com o mapa
+                        </span>
+                      </button>
+                    )}
+                  </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-neutral-500 text-sm p-6 text-center">
                     Mapa interativo não configurado ainda.
