@@ -49,6 +49,7 @@ export function MasterDashboardClient({
   const [newNeighborhood, setNewNeighborhood] = useState("");
   const [newCity, setNewCity] = useState("");
   const [newColor, setNewColor] = useState("#E11D48");
+  const [newPlanTier, setNewPlanTier] = useState<"essencial" | "pro">("pro");
   const [newClientEmail, setNewClientEmail] = useState("");
   const [newClientPassword, setNewClientPassword] = useState("");
   const [creating, setCreating] = useState(false);
@@ -95,6 +96,7 @@ export function MasterDashboardClient({
           neighborhood: addrObj.neighborhood,
           city: addrObj.city,
           google_maps_embed: buildGoogleMapsEmbedUrl(addrObj),
+          plan_tier: newPlanTier,
           client_email: newClientEmail.trim() || undefined,
           client_password: newClientPassword || undefined,
           theme_config: {
@@ -158,6 +160,30 @@ export function MasterDashboardClient({
       if (res.ok) {
         setTenants((prev) =>
           prev.map((t) => (t.id === tenant.id ? { ...t, status: nextStatus } : t))
+        );
+      }
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleChangePlan = async (
+    tenant: TenantWithRelations,
+    nextPlan: "essencial" | "pro"
+  ) => {
+    if (tenant.plan_tier === nextPlan) return;
+    setBusyId(tenant.id);
+    try {
+      const res = await fetch(`/api/tenants/${tenant.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan_tier: nextPlan }),
+      });
+      if (res.ok) {
+        setTenants((prev) =>
+          prev.map((t) =>
+            t.id === tenant.id ? { ...t, plan_tier: nextPlan } : t
+          )
         );
       }
     } finally {
@@ -305,9 +331,32 @@ export function MasterDashboardClient({
                         >
                           {isActive ? "Ativo" : "Suspenso"}
                         </span>
-                        <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/5 text-neutral-300 border border-white/10">
-                          Plano {tenant.plan_tier}
-                        </span>
+                        <div className="inline-flex items-center rounded-full bg-black/50 border border-white/10 p-0.5">
+                          <button
+                            type="button"
+                            disabled={isBusy}
+                            onClick={() => handleChangePlan(tenant, "essencial")}
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition ${
+                              tenant.plan_tier === "essencial"
+                                ? "bg-white text-black"
+                                : "text-neutral-400 hover:text-white"
+                            }`}
+                          >
+                            Essencial
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isBusy}
+                            onClick={() => handleChangePlan(tenant, "pro")}
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition ${
+                              tenant.plan_tier === "pro"
+                                ? "bg-rose-600 text-white"
+                                : "text-neutral-400 hover:text-white"
+                            }`}
+                          >
+                            Pro
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-400 mt-1">
@@ -519,6 +568,46 @@ export function MasterDashboardClient({
                   {createError}
                 </p>
               )}
+
+              <div>
+                <label className="block text-xs font-medium text-neutral-300 mb-2">
+                  Plano da Academia
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setNewPlanTier("essencial")}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      newPlanTier === "essencial"
+                        ? "border-white bg-white/10 text-white"
+                        : "border-white/10 bg-black/40 text-neutral-400 hover:border-white/25"
+                    }`}
+                  >
+                    <span className="block text-xs font-bold uppercase">
+                      Essencial
+                    </span>
+                    <span className="block text-[11px] text-neutral-400 mt-0.5">
+                      Site + WhatsApp + Subdomínio
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewPlanTier("pro")}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      newPlanTier === "pro"
+                        ? "border-rose-500 bg-rose-600/15 text-white"
+                        : "border-white/10 bg-black/40 text-neutral-400 hover:border-white/25"
+                    }`}
+                  >
+                    <span className="block text-xs font-bold uppercase text-rose-400">
+                      Pro (Completo)
+                    </span>
+                    <span className="block text-[11px] text-neutral-300 mt-0.5">
+                      Funil, CRM, Domínio, Stories
+                    </span>
+                  </button>
+                </div>
+              </div>
 
               <div>
                 <label className="block text-xs font-medium text-neutral-300 mb-2">

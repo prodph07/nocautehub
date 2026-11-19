@@ -1676,21 +1676,36 @@ export function TenantEditorClient({
                       </div>
                       <div>
                         <label className="block text-xs text-neutral-300 mb-1">
-                          Plano
+                          Plano da Academia
                         </label>
-                        <select
-                          value={tenant.plan_tier}
-                          onChange={(e) =>
-                            setTenant({
-                              ...tenant,
-                              plan_tier: e.target.value as "essencial" | "pro",
-                            })
-                          }
-                          className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
-                        >
-                          <option value="essencial">Essencial</option>
-                          <option value="pro">Pro</option>
-                        </select>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTenant({ ...tenant, plan_tier: "essencial" })
+                            }
+                            className={`py-2 px-3 rounded-lg text-xs font-bold uppercase border transition ${
+                              tenant.plan_tier === "essencial"
+                                ? "bg-white text-black border-white"
+                                : "bg-black/50 text-neutral-400 border-white/15 hover:text-white"
+                            }`}
+                          >
+                            Essencial
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTenant({ ...tenant, plan_tier: "pro" })
+                            }
+                            className={`py-2 px-3 rounded-lg text-xs font-bold uppercase border transition ${
+                              tenant.plan_tier === "pro"
+                                ? "bg-rose-600 text-white border-rose-500"
+                                : "bg-black/50 text-neutral-400 border-white/15 hover:text-white"
+                            }`}
+                          >
+                            Pro
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
