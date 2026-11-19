@@ -4,10 +4,13 @@ import {
   isSupabaseUserMaster,
   MASTER_SESSION_COOKIE,
 } from "@/lib/auth";
+import { CLIENT_SESSION_COOKIE } from "@/lib/client-auth";
 import {
+  createAdminSupabase,
   createServerSupabase,
   isSupabaseConfigured,
 } from "@/lib/supabase/server";
+import { repository } from "@/lib/repository";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +23,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const cleanEmail = String(email).trim().toLowerCase();
+
     if (isSupabaseConfigured()) {
       const supabase = await createServerSupabase();
       if (!supabase) {
@@ -30,52 +35,110 @@ export async function POST(req: NextRequest) {
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: cleanEmail,
+        password: String(password),
       });
 
       if (error || !data.user) {
         return NextResponse.json(
-          { error: "Credenciais inválidas" },
+          { error: "E-mail ou senha inválidos" },
           { status: 401 }
         );
       }
 
       const isMaster = await isSupabaseUserMaster(data.user);
-      if (!isMaster) {
-        await supabase.auth.signOut();
-        return NextResponse.json(
-          {
-            error:
-              "Esta conta pertence ao Painel da Academia (/admin) e não possui permissão Master.",
-          },
-          { status: 403 }
-        );
+      if (isMaster) {
+        return NextResponse.json({
+          ok: true,
+          role: "master",
+          redirectTo: "/master",
+          mode: "supabase",
+        });
       }
 
-      return NextResponse.json({ ok: true, mode: "supabase" });
-    }
+      // É um dono de academia: busca o tenant vinculado e redireciona direto para /sites/<slug>/admin
+      const admin = createAdminSupabase();
+      if (admin) {
+        const { data: membership } = await admin
+          .from("tenant_users")
+          .select("tenant_id")
+          .eq("user_id", data.user.id)
+          .limit(1)
+          .maybeSingle();
 
-    const creds = getLocalMasterCredentials();
-    if (
-      String(email).trim().toLowerCase() !== creds.email.toLowerCase() ||
-      String(password) !== creds.password
-    ) {
+        if (membership?.tenant_id) {
+          const tenant = await repository.getTenantById(membership.tenant_id);
+          if (tenant) {
+            return NextResponse.json({
+              ok: true,
+              role: "client",
+              redirectTo: `/sites/${tenant.slug}/admin`,
+              mode: "supabase",
+            });
+          }
+        }
+      }
+
+      await supabase.auth.signOut();
       return NextResponse.json(
-        { error: "E-mail ou senha inválidos (Modo Local)" },
-        { status: 401 }
+        { error: "Esta conta não está vinculada a nenhuma academia ativa." },
+        { status: 403 }
       );
     }
 
-    const res = NextResponse.json({ ok: true, mode: "local" });
-    res.cookies.set(MASTER_SESSION_COOKIE, "local_master_authenticated_v1", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+    // MODO LOCAL: primeiro verifica se é Master
+    const creds = getLocalMasterCredentials();
+    if (
+      cleanEmail === creds.email.toLowerCase() &&
+      String(password) === creds.password
+    ) {
+      const res = NextResponse.json({
+        ok: true,
+        role: "master",
+        redirectTo: "/master",
+        mode: "local",
+      });
+      res.cookies.set(MASTER_SESSION_COOKIE, "local_master_authenticated_v1", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      return res;
+    }
+
+    // MODO LOCAL: verifica se pertence a alguma academia
+    const tenants = await repository.listTenants();
+    const matchedTenant = tenants.find((t) => {
+      const expectedEmail = (
+        t.admin_email || `dono@${t.slug}.com.br`
+      ).toLowerCase();
+      const expectedPass = t.admin_password || "academia123";
+      return cleanEmail === expectedEmail && String(password) === expectedPass;
     });
-    return res;
+
+    if (matchedTenant) {
+      const res = NextResponse.json({
+        ok: true,
+        role: "client",
+        redirectTo: `/sites/${matchedTenant.slug}/admin`,
+        mode: "local",
+      });
+      res.cookies.set(CLIENT_SESSION_COOKIE, `tenant:${matchedTenant.id}`, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      return res;
+    }
+
+    return NextResponse.json(
+      { error: "E-mail ou senha inválidos" },
+      { status: 401 }
+    );
   } catch {
     return NextResponse.json(
       { error: "Erro ao autenticar" },
@@ -83,4 +146,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

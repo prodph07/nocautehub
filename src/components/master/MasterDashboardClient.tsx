@@ -49,6 +49,8 @@ export function MasterDashboardClient({
   const [newNeighborhood, setNewNeighborhood] = useState("");
   const [newCity, setNewCity] = useState("");
   const [newColor, setNewColor] = useState("#E11D48");
+  const [newClientEmail, setNewClientEmail] = useState("");
+  const [newClientPassword, setNewClientPassword] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
 
@@ -93,6 +95,8 @@ export function MasterDashboardClient({
           neighborhood: addrObj.neighborhood,
           city: addrObj.city,
           google_maps_embed: buildGoogleMapsEmbedUrl(addrObj),
+          client_email: newClientEmail.trim() || undefined,
+          client_password: newClientPassword || undefined,
           theme_config: {
             primary: newColor,
             secondary: "#F59E0B",
@@ -117,6 +121,8 @@ export function MasterDashboardClient({
         setNewAddress("");
         setNewNeighborhood("");
         setNewCity("");
+        setNewClientEmail("");
+        setNewClientPassword("");
       }
     } catch {
       setCreateError("Erro de conexão ao criar academia. Tente novamente.");
@@ -484,6 +490,29 @@ export function MasterDashboardClient({
                   setNewCity(next.city);
                 }}
               />
+
+              <div className="pt-2 border-t border-white/10 space-y-2.5">
+                <p className="text-xs font-semibold text-neutral-200">
+                  Acesso do Dono da Academia (opcional — já libera o login)
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <input
+                    type="email"
+                    value={newClientEmail}
+                    onChange={(e) => setNewClientEmail(e.target.value)}
+                    placeholder="dono@academia.com.br"
+                    className="w-full px-3 py-2.5 rounded-xl bg-black/50 border border-white/15 text-sm text-white focus:outline-none focus:border-rose-500"
+                  />
+                  <input
+                    type="password"
+                    minLength={6}
+                    value={newClientPassword}
+                    onChange={(e) => setNewClientPassword(e.target.value)}
+                    placeholder="Senha (mín. 6 dígitos)"
+                    className="w-full px-3 py-2.5 rounded-xl bg-black/50 border border-white/15 text-sm text-white focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+              </div>
 
               {createError && (
                 <p className="text-xs text-rose-300 bg-rose-500/15 border border-rose-500/30 rounded-xl px-3 py-2">

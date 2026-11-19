@@ -72,7 +72,7 @@ export default function NocauteHubHomePage() {
               href="/master/login"
               className="min-h-[40px] px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs sm:text-sm font-semibold text-white transition inline-flex items-center"
             >
-              Acesso Master
+              Acessar Painel
             </Link>
           </div>
         </div>

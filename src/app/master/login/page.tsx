@@ -31,7 +31,7 @@ export default function MasterLoginPage() {
         return;
       }
 
-      router.push("/master");
+      router.push(data.redirectTo || "/master");
       router.refresh();
     } catch {
       setError("Erro de conexão ao autenticar");
@@ -56,10 +56,10 @@ export default function MasterLoginPage() {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <h1 className="font-display text-3xl uppercase text-white">
-              Acesso Master
+              Acessar Painel
             </h1>
             <p className="text-sm text-neutral-400">
-              Painel operacional interno do Nocaute Hub para gerenciar academias, demos e leads.
+              Entre com sua conta Master ou da sua Academia — você será direcionado automaticamente para o seu painel.
             </p>
           </div>
 
