@@ -24,6 +24,7 @@ export function middleware(req: NextRequest) {
     hostname === rootDomainEnv ||
     hostname === `www.${rootDomainEnv}` ||
     hostname.endsWith(".pages.dev") ||
+    hostname.endsWith(".workers.dev") ||
     hostname.endsWith(".vercel.app");
 
   // Subdomínio local (ex: nocaute-fight-club.localhost)

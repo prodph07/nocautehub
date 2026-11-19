@@ -1,8 +1,14 @@
 name = "nocaute-hub"
 main = ".open-next/worker.js"
-compatibility_date = "2025-02-01"
+compatibility_date = "2025-11-01"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
 
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
+
+[vars]
+NEXT_PUBLIC_PLATFORM_NAME = "Nocaute Hub"
+NEXT_PUBLIC_SUPABASE_URL = "https://huqyyiwbwreyszwhqtkl.supabase.co"
+NEXT_PUBLIC_CLOUDFLARE_CNAME_TARGET = "cname.nocautehub.com.br"
