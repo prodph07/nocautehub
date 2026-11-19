@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Clock, User, Calendar, ArrowRight } from "lucide-react";
 import {
   DAYS_ORDER,
@@ -37,13 +37,17 @@ export function InteractiveSchedule({
     return DAYS_ORDER.filter((d) => set.has(d));
   }, [schedules]);
 
-  const defaultDay = useMemo<DayOfWeek | "all">(() => {
-    const todayKey = JS_DAY_TO_KEY[new Date().getDay()];
-    return activeDays.includes(todayKey) ? todayKey : activeDays[0] || "all";
-  }, [activeDays]);
-
-  const [selectedDay, setSelectedDay] = useState<DayOfWeek | "all">(defaultDay);
+  const [selectedDay, setSelectedDay] = useState<DayOfWeek | "all">(
+    activeDays[0] || "all"
+  );
   const [selectedModality, setSelectedModality] = useState<string>("all");
+
+  useEffect(() => {
+    const todayKey = JS_DAY_TO_KEY[new Date().getDay()];
+    if (activeDays.includes(todayKey)) {
+      setSelectedDay(todayKey);
+    }
+  }, [activeDays]);
 
   const modalityMap = useMemo(() => {
     const map = new Map<string, Modality>();
@@ -92,11 +96,10 @@ export function InteractiveSchedule({
                 key={day}
                 type="button"
                 onClick={() => setSelectedDay(day)}
-                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold active:scale-[0.97] transition duration-200 ${
-                  selectedDay === day
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold active:scale-[0.97] transition duration-200 ${selectedDay === day
                     ? "bg-brand-primary text-white shadow-md shadow-brand-primary/25"
                     : "bg-white/5 text-neutral-300 hover:bg-white/10"
-                }`}
+                  }`}
               >
                 {DAY_SHORT_LABELS[day]}
               </button>
@@ -104,11 +107,10 @@ export function InteractiveSchedule({
             <button
               type="button"
               onClick={() => setSelectedDay("all")}
-              className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold active:scale-[0.97] transition duration-200 ${
-                selectedDay === "all"
+              className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold active:scale-[0.97] transition duration-200 ${selectedDay === "all"
                   ? "bg-brand-primary text-white shadow-md shadow-brand-primary/25"
                   : "bg-white/5 text-neutral-300 hover:bg-white/10"
-              }`}
+                }`}
             >
               Semana toda
             </button>
@@ -125,11 +127,10 @@ export function InteractiveSchedule({
             <button
               type="button"
               onClick={() => setSelectedModality("all")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                selectedModality === "all"
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${selectedModality === "all"
                   ? "bg-white text-black font-semibold"
                   : "bg-white/5 text-neutral-300 hover:bg-white/10"
-              }`}
+                }`}
             >
               Todas
             </button>
@@ -138,11 +139,10 @@ export function InteractiveSchedule({
                 key={mod.id}
                 type="button"
                 onClick={() => setSelectedModality(mod.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                  selectedModality === mod.id
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${selectedModality === mod.id
                     ? "bg-white text-black font-semibold"
                     : "bg-white/5 text-neutral-300 hover:bg-white/10"
-                }`}
+                  }`}
               >
                 {mod.name}
               </button>
