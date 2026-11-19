@@ -34,6 +34,7 @@ import {
 import { hexToRgbTriplet } from "@/lib/colors";
 import { DomainManagerCard } from "@/components/shared/DomainManagerCard";
 import { StoriesScheduleGenerator } from "@/components/shared/StoriesScheduleGenerator";
+import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
 import { TenantEditorClient } from "@/components/master/TenantEditorClient";
 
 interface ClientAdminDashboardProps {
@@ -85,7 +86,9 @@ export function ClientAdminDashboard({
           schedules: tenant.schedules,
         }),
       });
+      const data = await res.json();
       if (res.ok) {
+        if (data.tenant) setTenant(data.tenant);
         setSavedToast(true);
         setTimeout(() => setSavedToast(false), 3000);
       }
@@ -376,17 +379,14 @@ export function ClientAdminDashboard({
                 <p className="text-xs text-neutral-400">
                   Todos os botões de agendamento do seu site direcionam automaticamente para este número.
                 </p>
-                <input
-                  type="text"
+                <WhatsAppInput
                   value={tenant.whatsapp_number}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setTenant({
                       ...tenant,
-                      whatsapp_number: e.target.value.replace(/\D/g, ""),
+                      whatsapp_number: val,
                     })
                   }
-                  placeholder="5511999999999"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-sm text-white"
                 />
               </div>
             </div>

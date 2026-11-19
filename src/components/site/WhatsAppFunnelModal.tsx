@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { LeadShift, Modality } from "@/types/tenant";
+import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
 
 interface WhatsAppFunnelModalProps {
   open: boolean;
@@ -292,18 +293,12 @@ export function WhatsAppFunnelModal({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-neutral-300 mb-1.5">
-                  Seu WhatsApp (opcional)
-                </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(11) 99999-9999"
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white placeholder:text-neutral-500 focus:outline-none focus:border-brand-primary text-sm"
-                />
-              </div>
+              <WhatsAppInput
+                label="Seu WhatsApp (opcional)"
+                includeCountryPrefix={false}
+                value={phone}
+                onChange={setPhone}
+              />
             </div>
 
             {error && (

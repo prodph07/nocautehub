@@ -145,17 +145,29 @@ export const repository = {
       instructors: inputInsts,
       testimonials: inputTests,
       leads_count: _lc,
+      admin_email: _ae,
+      admin_password: _ap,
       id: _id,
       created_at: _ca,
       updated_at: _ua,
       ...rest
     } = { ...seed, ...input };
 
+    let slug = baseSlug || `academia-${Date.now()}`;
+    const { data: existingSlug } = await supabase
+      .from("tenants")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (existingSlug) {
+      slug = `${slug}-${Math.floor(100 + Math.random() * 900)}`;
+    }
+
     const { data: created, error } = await supabase
       .from("tenants")
       .insert({
         ...rest,
-        slug: baseSlug || `academia-${Date.now()}`,
+        slug,
         custom_domain: input.custom_domain || null,
       })
       .select("*")
@@ -257,6 +269,8 @@ export const repository = {
       instructors,
       testimonials,
       leads_count: _lc,
+      admin_email: _ae,
+      admin_password: _ap,
       id: _id,
       created_at: _ca,
       updated_at: _ua,
@@ -272,9 +286,14 @@ export const repository = {
     }
 
     if (modalities) {
-      await supabase.from("modalities").delete().eq("tenant_id", id);
+      const { error: delModErr } = await supabase
+        .from("modalities")
+        .delete()
+        .eq("tenant_id", id);
+      if (delModErr) throw new Error(delModErr.message);
+
       if (modalities.length > 0) {
-        await supabase.from("modalities").insert(
+        const { error: insModErr } = await supabase.from("modalities").insert(
           modalities.map((m, idx) => ({
             id: m.id,
             tenant_id: id,
@@ -285,14 +304,23 @@ export const repository = {
             display_order: idx + 1,
           }))
         );
+        if (insModErr) throw new Error(insModErr.message);
       }
     }
 
     if (schedules) {
-      await supabase.from("schedules").delete().eq("tenant_id", id);
-      if (schedules.length > 0) {
-        await supabase.from("schedules").insert(
-          schedules.map((s) => ({
+      const { error: delSchedErr } = await supabase
+        .from("schedules")
+        .delete()
+        .eq("tenant_id", id);
+      if (delSchedErr) throw new Error(delSchedErr.message);
+
+      const validSchedules = schedules.filter(
+        (s) => s.modality_id && s.modality_id.length > 10
+      );
+      if (validSchedules.length > 0) {
+        const { error: insSchedErr } = await supabase.from("schedules").insert(
+          validSchedules.map((s) => ({
             tenant_id: id,
             modality_id: s.modality_id,
             day_of_week: s.day_of_week,
@@ -302,6 +330,7 @@ export const repository = {
             level: s.level,
           }))
         );
+        if (insSchedErr) throw new Error(insSchedErr.message);
       }
     }
 

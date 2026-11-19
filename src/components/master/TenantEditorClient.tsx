@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -37,6 +37,8 @@ import { BRAND_COLOR_PRESETS } from "@/lib/colors";
 import { ImageUploadField } from "./ImageUploadField";
 import { DomainManagerCard } from "@/components/shared/DomainManagerCard";
 import { StoriesScheduleGenerator } from "@/components/shared/StoriesScheduleGenerator";
+import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
+import { CepAddressFields } from "@/components/shared/CepAddressFields";
 import {
   SectionLivePreview,
   type EditorSectionKey,
@@ -86,6 +88,11 @@ export function TenantEditorClient({
   const [saving, setSaving] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setTenant(initialTenant);
+    setSavedSnapshot(JSON.stringify(initialTenant));
+  }, [initialTenant]);
 
   const isClientMode = mode === "client";
   const visibleSections = isClientMode
@@ -1115,33 +1122,49 @@ export function TenantEditorClient({
                     <StoriesScheduleGenerator tenant={tenant} />
                     <button
                       type="button"
-                    onClick={() => {
-                      const firstModId = tenant.modalities[0]?.id || "";
-                      setTenant({
-                        ...tenant,
-                        schedules: [
-                          {
-                            id: crypto.randomUUID(),
-                            tenant_id: tenant.id,
-                            modality_id: firstModId,
-                            day_of_week: "seg",
-                            start_time: "19:00",
-                            end_time: "20:00",
-                            instructor_name:
-                              tenant.instructors[0]?.name || "Professor",
-                            level: "Todos os níveis",
-                          },
-                          ...tenant.schedules,
-                        ],
-                      });
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white inline-flex items-center gap-1"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Nova Aula
-                  </button>
+                      disabled={tenant.modalities.length === 0}
+                      onClick={() => {
+                        const firstModId = tenant.modalities[0]?.id;
+                        if (!firstModId) return;
+                        setTenant({
+                          ...tenant,
+                          schedules: [
+                            {
+                              id: crypto.randomUUID(),
+                              tenant_id: tenant.id,
+                              modality_id: firstModId,
+                              day_of_week: "seg",
+                              start_time: "19:00",
+                              end_time: "20:00",
+                              instructor_name:
+                                tenant.instructors[0]?.name || "Professor",
+                              level: "Todos os níveis",
+                            },
+                            ...tenant.schedules,
+                          ],
+                        });
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white inline-flex items-center gap-1 disabled:opacity-50"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Nova Aula
+                    </button>
                   </div>
                 </div>
+
+                {tenant.modalities.length === 0 && (
+                  <div className="rounded-xl bg-amber-500/15 border border-amber-500/30 p-4 text-xs text-amber-200">
+                    Cadastre pelo menos 1 modalidade na aba{" "}
+                    <button
+                      type="button"
+                      onClick={() => setActiveSection("modalidades")}
+                      className="underline font-bold"
+                    >
+                      3. Modalidades
+                    </button>{" "}
+                    antes de criar horários.
+                  </div>
+                )}
 
                 <div className="space-y-2.5">
                   {tenant.schedules.map((item, idx) => (
@@ -1350,37 +1373,28 @@ export function TenantEditorClient({
               <div className="space-y-5">
                 <div className="glass-card rounded-2xl p-5 space-y-3">
                   <h2 className="font-display text-lg uppercase text-white">
-                    Endereço & Mapa
+                    Endereço & Mapa (Busca por CEP)
                   </h2>
-                  <input
-                    type="text"
-                    value={tenant.address}
-                    onChange={(e) =>
-                      setTenant({ ...tenant, address: e.target.value })
+                  <CepAddressFields
+                    compact
+                    showMapsHelper
+                    value={{
+                      address: tenant.address,
+                      neighborhood: tenant.neighborhood,
+                      city: tenant.city,
+                      google_maps_embed: tenant.google_maps_embed,
+                    }}
+                    onChange={(next) =>
+                      setTenant({
+                        ...tenant,
+                        address: next.address,
+                        neighborhood: next.neighborhood,
+                        city: next.city,
+                        google_maps_embed:
+                          next.google_maps_embed ?? tenant.google_maps_embed,
+                      })
                     }
-                    placeholder="Endereço completo"
-                    className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
                   />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      value={tenant.neighborhood}
-                      onChange={(e) =>
-                        setTenant({ ...tenant, neighborhood: e.target.value })
-                      }
-                      placeholder="Bairro"
-                      className="px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
-                    />
-                    <input
-                      type="text"
-                      value={tenant.city}
-                      onChange={(e) =>
-                        setTenant({ ...tenant, city: e.target.value })
-                      }
-                      placeholder="Cidade - UF"
-                      className="px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
-                    />
-                  </div>
                   <input
                     type="text"
                     value={tenant.reference_point}
@@ -1605,19 +1619,12 @@ export function TenantEditorClient({
                       </div>
                     )}
                     <div className={isClientMode ? "col-span-2" : ""}>
-                      <label className="block text-xs text-neutral-300 mb-1">
-                        WhatsApp (com 55)
-                      </label>
-                      <input
-                        type="text"
+                      <WhatsAppInput
+                        label="WhatsApp"
                         value={tenant.whatsapp_number}
-                        onChange={(e) =>
-                          setTenant({
-                            ...tenant,
-                            whatsapp_number: e.target.value.replace(/\D/g, ""),
-                          })
+                        onChange={(val) =>
+                          setTenant({ ...tenant, whatsapp_number: val })
                         }
-                        className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
                       />
                     </div>
                   </div>

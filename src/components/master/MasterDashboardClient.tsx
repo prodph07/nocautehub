@@ -21,6 +21,11 @@ import {
 } from "lucide-react";
 import type { TenantWithRelations } from "@/types/tenant";
 import { BRAND_COLOR_PRESETS } from "@/lib/colors";
+import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
+import {
+  CepAddressFields,
+  buildGoogleMapsEmbedUrl,
+} from "@/components/shared/CepAddressFields";
 
 interface MasterDashboardClientProps {
   initialTenants: TenantWithRelations[];
@@ -39,11 +44,13 @@ export function MasterDashboardClient({
   // Form Nova Academia
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
-  const [newWhatsapp, setNewWhatsapp] = useState("5511999999999");
+  const [newWhatsapp, setNewWhatsapp] = useState("");
+  const [newAddress, setNewAddress] = useState("");
   const [newNeighborhood, setNewNeighborhood] = useState("");
   const [newCity, setNewCity] = useState("");
   const [newColor, setNewColor] = useState("#E11D48");
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
 
   const activeCount = tenants.filter((t) => t.status === "active").length;
   const suspendedCount = tenants.filter((t) => t.status === "suspended").length;
@@ -58,18 +65,34 @@ export function MasterDashboardClient({
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
+
+    const cleanWa = newWhatsapp.replace(/\D/g, "");
+    if (cleanWa.length < 12) {
+      setCreateError("Informe um WhatsApp válido com DDD (ex: (11) 99999-9999).");
+      return;
+    }
+
     setCreating(true);
+    setCreateError("");
 
     try {
+      const addrObj = {
+        address: newAddress.trim() || "Endereço a definir",
+        neighborhood: newNeighborhood.trim() || "Centro",
+        city: newCity.trim() || "São Paulo - SP",
+      };
+
       const res = await fetch("/api/tenants", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newName.trim(),
           slug: newSlug.trim() || undefined,
-          whatsapp_number: newWhatsapp.replace(/\D/g, "") || "5511999999999",
-          neighborhood: newNeighborhood.trim() || "Centro",
-          city: newCity.trim() || "São Paulo - SP",
+          whatsapp_number: cleanWa,
+          address: addrObj.address,
+          neighborhood: addrObj.neighborhood,
+          city: addrObj.city,
+          google_maps_embed: buildGoogleMapsEmbedUrl(addrObj),
           theme_config: {
             primary: newColor,
             secondary: "#F59E0B",
@@ -81,14 +104,22 @@ export function MasterDashboardClient({
         }),
       });
       const data = await res.json();
-      if (res.ok && data.tenant) {
+      if (!res.ok) {
+        setCreateError(data.error || "Não foi possível criar a academia.");
+        return;
+      }
+      if (data.tenant) {
         setTenants((prev) => [{ ...data.tenant, leads_count: 0 }, ...prev]);
         setCreateOpen(false);
         setNewName("");
         setNewSlug("");
+        setNewWhatsapp("");
+        setNewAddress("");
         setNewNeighborhood("");
         setNewCity("");
       }
+    } catch {
+      setCreateError("Erro de conexão ao criar academia. Tente novamente.");
     } finally {
       setCreating(false);
     }
@@ -380,7 +411,7 @@ export function MasterDashboardClient({
           onClick={() => setCreateOpen(false)}
         >
           <div
-            className="w-full max-w-md bg-[#121214] border border-white/10 rounded-2xl p-6 space-y-5 relative"
+            className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#121214] border border-white/10 rounded-2xl p-6 space-y-5 relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -415,59 +446,50 @@ export function MasterDashboardClient({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-300 mb-1">
-                    Slug (subdomínio)
-                  </label>
-                  <input
-                    type="text"
-                    value={newSlug}
-                    onChange={(e) => setNewSlug(e.target.value)}
-                    placeholder="ct-guerreiros"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-sm text-white focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-neutral-300 mb-1">
-                    WhatsApp (com DDI)
-                  </label>
-                  <input
-                    type="text"
-                    value={newWhatsapp}
-                    onChange={(e) => setNewWhatsapp(e.target.value)}
-                    placeholder="5511999999999"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-sm text-white focus:outline-none focus:border-rose-500"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-medium text-neutral-300 mb-1">
+                  Slug / Subdomínio (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={newSlug}
+                  onChange={(e) =>
+                    setNewSlug(
+                      e.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9-]/g, "")
+                    )
+                  }
+                  placeholder="ct-guerreiros"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-sm text-white focus:outline-none focus:border-rose-500"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-300 mb-1">
-                    Bairro
-                  </label>
-                  <input
-                    type="text"
-                    value={newNeighborhood}
-                    onChange={(e) => setNewNeighborhood(e.target.value)}
-                    placeholder="Pinheiros"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-sm text-white focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-neutral-300 mb-1">
-                    Cidade / UF
-                  </label>
-                  <input
-                    type="text"
-                    value={newCity}
-                    onChange={(e) => setNewCity(e.target.value)}
-                    placeholder="São Paulo - SP"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-sm text-white focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-              </div>
+              <WhatsAppInput
+                label="WhatsApp da Academia"
+                required
+                value={newWhatsapp}
+                onChange={setNewWhatsapp}
+              />
+
+              <CepAddressFields
+                value={{
+                  address: newAddress,
+                  neighborhood: newNeighborhood,
+                  city: newCity,
+                }}
+                onChange={(next) => {
+                  setNewAddress(next.address);
+                  setNewNeighborhood(next.neighborhood);
+                  setNewCity(next.city);
+                }}
+              />
+
+              {createError && (
+                <p className="text-xs text-rose-300 bg-rose-500/15 border border-rose-500/30 rounded-xl px-3 py-2">
+                  {createError}
+                </p>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-neutral-300 mb-2">
