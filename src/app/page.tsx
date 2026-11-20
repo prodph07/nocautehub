@@ -17,20 +17,12 @@ import {
 import { PLAN_COMPARISON_ROWS } from "@/lib/plans";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { TrackingScripts } from "@/components/site/TrackingScripts";
+import { SalesWhatsAppButton } from "@/components/site/SalesWhatsAppButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function NocauteHubHomePage() {
   const platformSettings = await getPlatformSettings();
-  const salesWa = (process.env.NEXT_PUBLIC_SALES_WHATSAPP || "").replace(
-    /\D/g,
-    ""
-  );
-  const waCommercialUrl = salesWa
-    ? `https://wa.me/${salesWa}?text=${encodeURIComponent(
-        "Olá! Quero conhecer o Nocaute Hub e ver uma demonstração para minha academia de luta."
-      )}`
-    : "/sites/ftm";
 
   return (
     <div className="min-h-screen bg-[#0C0C0C] text-neutral-100 flex flex-col">
@@ -71,18 +63,24 @@ export default async function NocauteHubHomePage() {
             </a>
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <Link
               href="/sites/ftm"
-              className="min-h-[40px] px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs sm:text-sm font-semibold text-white transition inline-flex items-center"
+              className="hidden sm:inline-flex min-h-[40px] px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs sm:text-sm font-semibold text-white transition items-center"
             >
               Ver Demo
             </Link>
             <Link
-              href="/master/login"
-              className="min-h-[40px] px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs sm:text-sm font-semibold text-white transition inline-flex items-center"
+              href="/criar"
+              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs sm:text-sm font-bold text-white transition inline-flex items-center"
             >
-              Acessar Painel
+              Criar Meu Site
+            </Link>
+            <Link
+              href="/master/login"
+              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs sm:text-sm font-semibold text-neutral-200 transition inline-flex items-center"
+            >
+              Entrar
             </Link>
           </div>
         </div>
@@ -112,22 +110,29 @@ export default async function NocauteHubHomePage() {
                 para o dono da academia — no ar em minutos.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
                 <Link
-                  href="/sites/ftm"
+                  href="/criar"
                   className="btn-shimmer min-h-[52px] px-7 py-4 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.97] text-white font-bold text-sm sm:text-base uppercase tracking-wider transition inline-flex items-center justify-center gap-2 shadow-xl shadow-rose-600/25"
                 >
-                  <span>Ver Academia Demo ao Vivo</span>
+                  <span>Criar Meu Site Agora (15 Dias Grátis)</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
-                <a
-                  href="#planos"
-                  className="min-h-[52px] px-6 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 active:scale-[0.97] text-white font-semibold text-sm sm:text-base transition inline-flex items-center justify-center gap-2"
+                <SalesWhatsAppButton
+                  label="Criar Junto no WhatsApp"
+                  message="Olá! Quero conhecer o Nocaute Hub e criar o site da minha academia de luta junto com você."
+                  sourceLabel="Hero Comercial - Criar Junto no WhatsApp"
+                  className="min-h-[52px] px-6 py-4 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366] border border-[#25D366]/40 active:scale-[0.97] text-[#25D366] hover:text-black font-bold text-sm sm:text-base uppercase tracking-wider transition inline-flex items-center justify-center gap-2"
+                />
+
+                <Link
+                  href="/sites/ftm"
+                  className="min-h-[52px] px-5 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 active:scale-[0.97] text-white font-semibold text-sm transition inline-flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-4 h-4 text-rose-400" />
-                  <span>Comparar Planos</span>
-                </a>
+                  <span>Ver Academia Demo</span>
+                </Link>
               </div>
             </div>
           </div>
@@ -352,21 +357,28 @@ export default async function NocauteHubHomePage() {
                 </table>
               </div>
 
-              <div className="p-5 sm:p-6 border-t border-white/10 bg-black/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="p-5 sm:p-6 border-t border-white/10 bg-black/30 flex flex-col lg:flex-row items-center justify-between gap-4">
                 <p className="text-xs sm:text-sm text-neutral-300">
-                  Quer ver como ficaria o site da{" "}
-                  <strong className="text-white">sua academia</strong> antes de
-                  fechar? Montamos uma demonstração gratuita.
+                  Veja o site da{" "}
+                  <strong className="text-white">sua academia</strong> pronto em
+                  10 segundos com <strong>15 dias grátis</strong> — ou crie
+                  junto conosco pelo WhatsApp.
                 </p>
-                <a
-                  href={waCommercialUrl}
-                  target={salesWa ? "_blank" : undefined}
-                  rel={salesWa ? "noreferrer" : undefined}
-                  className="btn-shimmer shrink-0 w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.97] text-white font-bold text-xs sm:text-sm uppercase tracking-wider inline-flex items-center justify-center gap-2 shadow-lg shadow-rose-600/25 transition"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Solicitar Demo Gratuita</span>
-                </a>
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full lg:w-auto shrink-0">
+                  <Link
+                    href="/criar"
+                    className="btn-shimmer w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.97] text-white font-bold text-xs sm:text-sm uppercase tracking-wider inline-flex items-center justify-center gap-2 shadow-lg shadow-rose-600/25 transition"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Criar Meu Site Agora</span>
+                  </Link>
+                  <SalesWhatsAppButton
+                    label="Criar Junto no WhatsApp"
+                    message="Olá! Vi a tabela de planos do Nocaute Hub e quero criar o site da minha academia junto com você."
+                    sourceLabel="Tabela de Planos - Criar Junto no WhatsApp"
+                    className="w-full sm:w-auto min-h-[48px] px-5 py-3 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366] border border-[#25D366]/40 text-[#25D366] hover:text-black font-bold text-xs sm:text-sm uppercase tracking-wider inline-flex items-center justify-center gap-2 transition"
+                  />
+                </div>
               </div>
             </div>
           </div>

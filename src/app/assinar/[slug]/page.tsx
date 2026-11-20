@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { repository } from "@/lib/repository";
 import { getDefaultTrialDays } from "@/lib/pagarme";
+import { getPlatformSettings } from "@/lib/platform-settings";
+import { TrackingScripts } from "@/components/site/TrackingScripts";
 import { TransparentCheckoutClient } from "@/components/billing/TransparentCheckoutClient";
 
 export const dynamic = "force-dynamic";
@@ -33,9 +35,10 @@ export default async function AssinarTenantPage({
 }: AssinarPageProps) {
   const { slug } = await params;
   const sp = await searchParams;
-  const tenant = await repository.getTenantByDomainOrSlug(
-    decodeURIComponent(slug)
-  );
+  const [tenant, platformSettings] = await Promise.all([
+    repository.getTenantByDomainOrSlug(decodeURIComponent(slug)),
+    getPlatformSettings(),
+  ]);
 
   if (!tenant) {
     notFound();
@@ -66,18 +69,25 @@ export default async function AssinarTenantPage({
   }
 
   return (
-    <TransparentCheckoutClient
-      tenant={{
-        id: tenant.id,
-        name: tenant.name,
-        slug: tenant.slug,
-        custom_domain: tenant.custom_domain,
-        plan_tier: tenant.plan_tier,
-        status: tenant.status,
-        primaryColor: tenant.theme_config?.primary || "#E11D48",
-      }}
-      trialDays={trialDays}
-    />
+    <>
+      <TrackingScripts
+        pixelId={platformSettings.meta_pixel_id || null}
+        gtmId={platformSettings.gtm_id || null}
+        googleAdsId={platformSettings.google_ads_id || null}
+      />
+      <TransparentCheckoutClient
+        tenant={{
+          id: tenant.id,
+          name: tenant.name,
+          slug: tenant.slug,
+          custom_domain: tenant.custom_domain,
+          plan_tier: tenant.plan_tier,
+          status: tenant.status,
+          primaryColor: tenant.theme_config?.primary || "#E11D48",
+        }}
+        trialDays={trialDays}
+      />
+    </>
   );
 }
 

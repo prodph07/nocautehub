@@ -12,13 +12,13 @@ export const PLAN_PRICING: Record<
   essencial: {
     name: "Nocaute Hub - Plano Essencial",
     regularCents: 4700, // R$ 47,00 / mês
-    firstMonthPromoCents: 2000, // R$ 20,00 no 1º mês (opção promocional)
+    firstMonthPromoCents: 2000,
     firstMonthDiscountCents: 2700,
   },
   pro: {
     name: "Nocaute Hub - Plano Pro",
     regularCents: 9700, // R$ 97,00 / mês
-    firstMonthPromoCents: 4900, // R$ 49,00 no 1º mês (opção promocional)
+    firstMonthPromoCents: 4900,
     firstMonthDiscountCents: 4800,
   },
 };
@@ -69,7 +69,8 @@ export interface DirectSubscriptionInput {
     city: string;
     state: string;
   };
-  card: {
+  cardToken?: string | null;
+  card?: {
     number: string;
     holderName: string;
     expMonth: number;
@@ -88,9 +89,7 @@ export interface DirectSubscriptionResult {
 
 /**
  * Cria a assinatura recorrente diretamente via Checkout Transparente (POST /core/v5/subscriptions).
- * - Não depende da página hospedada confusa da Pagar.me.
- * - Não cria planos duplicados na conta Pagar.me (usa assinatura avulsa com `items`).
- * - Quando `trialDays > 0`, agenda o início da 1ª cobrança para `now + trialDays` via `start_at`.
+ * Prioriza `card_token` (gerado no navegador com a chave pública pk_...) e mantém fallback para `card`.
  */
 export async function createPagarmeDirectSubscription(
   input: DirectSubscriptionInput
@@ -124,25 +123,6 @@ export async function createPagarmeDirectSubscription(
     throw new Error("Informe um CEP válido com 8 dígitos.");
   }
 
-  const cleanCardNumber = input.card.number.replace(/\D/g, "");
-  if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
-    throw new Error("Número do cartão de crédito inválido.");
-  }
-
-  const cleanCvv = input.card.cvv.replace(/\D/g, "");
-  if (cleanCvv.length < 3 || cleanCvv.length > 4) {
-    throw new Error("Código de segurança (CVV) inválido.");
-  }
-
-  let expYear = Number(input.card.expYear);
-  if (expYear < 100) {
-    expYear += 2000;
-  }
-  const expMonth = Number(input.card.expMonth);
-  if (!expMonth || expMonth < 1 || expMonth > 12) {
-    throw new Error("Mês de validade do cartão inválido.");
-  }
-
   const firstChargeDate = new Date(
     Date.now() + trialDays * 24 * 60 * 60 * 1000
   );
@@ -155,8 +135,50 @@ export async function createPagarmeDirectSubscription(
   const state =
     input.billingAddress.state.trim().toUpperCase().slice(0, 2) || "SP";
 
-  // Formato exigido pela Pagar.me v5 para line_1: "Número, Rua, Bairro"
-  const line1 = `${streetNumber}, ${streetName}, ${neighborhood}`.slice(0, 255);
+  const billingAddressBlock = {
+    line_1: `${streetNumber}, ${streetName}, ${neighborhood}`.slice(0, 255),
+    zip_code: cleanZip,
+    city,
+    state,
+    country: "BR",
+  };
+
+  let cardAuthFields: Record<string, unknown>;
+
+  if (input.cardToken && input.cardToken.trim().startsWith("token_")) {
+    cardAuthFields = {
+      card_token: input.cardToken.trim(),
+      card: {
+        billing_address: billingAddressBlock,
+      },
+    };
+  } else {
+    const cleanCardNumber = (input.card?.number || "").replace(/\D/g, "");
+    if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
+      throw new Error("Número do cartão de crédito inválido.");
+    }
+    const cleanCvv = (input.card?.cvv || "").replace(/\D/g, "");
+    if (cleanCvv.length < 3 || cleanCvv.length > 4) {
+      throw new Error("Código de segurança (CVV) inválido.");
+    }
+    let expYear = Number(input.card?.expYear || 0);
+    if (expYear < 100) expYear += 2000;
+    const expMonth = Number(input.card?.expMonth || 0);
+    if (!expMonth || expMonth < 1 || expMonth > 12) {
+      throw new Error("Mês de validade do cartão inválido.");
+    }
+
+    cardAuthFields = {
+      card: {
+        number: cleanCardNumber,
+        holder_name: (input.card?.holderName || "").trim().toUpperCase(),
+        exp_month: expMonth,
+        exp_year: expYear,
+        cvv: cleanCvv,
+        billing_address: billingAddressBlock,
+      },
+    };
+  }
 
   const payload: Record<string, unknown> = {
     code: `nh_${input.slug}_${Date.now()}`.slice(0, 52),
@@ -191,20 +213,7 @@ export async function createPagarmeDirectSubscription(
         },
       },
     },
-    card: {
-      number: cleanCardNumber,
-      holder_name: input.card.holderName.trim().toUpperCase(),
-      exp_month: expMonth,
-      exp_year: expYear,
-      cvv: cleanCvv,
-      billing_address: {
-        line_1: line1,
-        zip_code: cleanZip,
-        city,
-        state,
-        country: "BR",
-      },
-    },
+    ...cardAuthFields,
     metadata: {
       tenant_id: input.tenantId,
       slug: input.slug,
@@ -255,4 +264,179 @@ export async function createPagarmeDirectSubscription(
     regularCents: spec.regularCents,
     firstChargeDateIso,
   };
+}
+
+export interface PagarmeSubscriptionSnapshot {
+  id: string;
+  status: string;
+  nextBillingAt: string | null;
+  createdAt: string | null;
+  cardBrand: string | null;
+  cardLastFour: string | null;
+  holderName: string | null;
+  priceCents: number | null;
+}
+
+/**
+ * Consulta os dados em tempo real da assinatura na Pagar.me API v5.
+ */
+export async function getPagarmeSubscriptionDetails(
+  subscriptionId: string
+): Promise<PagarmeSubscriptionSnapshot | null> {
+  const secretKey = process.env.PAGARME_SECRET_KEY?.trim();
+  if (!secretKey || !subscriptionId) return null;
+
+  try {
+    const auth = getPagarmeAuthHeader(secretKey);
+    const res = await fetch(
+      `https://api.pagar.me/core/v5/subscriptions/${encodeURIComponent(
+        subscriptionId
+      )}`,
+      {
+        headers: { Authorization: auth, Accept: "application/json" },
+      }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+
+    return {
+      id: String(data.id),
+      status: String(data.status || "active"),
+      nextBillingAt: data.next_billing_at || data.start_at || null,
+      createdAt: data.created_at || null,
+      cardBrand: data.card?.brand || null,
+      cardLastFour: data.card?.last_four_digits || null,
+      holderName: data.card?.holder_name || null,
+      priceCents:
+        typeof data.items?.[0]?.pricing_scheme?.price === "number"
+          ? data.items[0].pricing_scheme.price
+          : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Faz upgrade da assinatura ativa na Pagar.me para o Plano Pro (R$ 97,00/mês).
+ */
+export async function upgradePagarmeSubscriptionToPro(
+  subscriptionId: string,
+  tenantName: string
+): Promise<boolean> {
+  const secretKey = process.env.PAGARME_SECRET_KEY?.trim();
+  if (!secretKey || !subscriptionId) return false;
+
+  const auth = getPagarmeAuthHeader(secretKey);
+  const getRes = await fetch(
+    `https://api.pagar.me/core/v5/subscriptions/${encodeURIComponent(
+      subscriptionId
+    )}`,
+    {
+      headers: { Authorization: auth, Accept: "application/json" },
+    }
+  );
+  if (!getRes.ok) return false;
+  const sub = await getRes.json();
+  const itemId = sub?.items?.[0]?.id;
+  if (!itemId) return false;
+
+  const proSpec = PLAN_PRICING.pro;
+  const putRes = await fetch(
+    `https://api.pagar.me/core/v5/subscriptions/${encodeURIComponent(
+      subscriptionId
+    )}/items/${encodeURIComponent(itemId)}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: auth,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        description: `${proSpec.name} — ${tenantName}`.slice(0, 128),
+        quantity: 1,
+        pricing_scheme: {
+          scheme_type: "unit",
+          price: proSpec.regularCents,
+        },
+      }),
+    }
+  );
+
+  return putRes.ok;
+}
+
+/**
+ * Atualiza o cartão de crédito vinculado a uma assinatura existente na Pagar.me API v5.
+ */
+export async function updatePagarmeSubscriptionCard(
+  subscriptionId: string,
+  input: {
+    cardToken?: string | null;
+    card?: {
+      number: string;
+      holderName: string;
+      expMonth: number;
+      expYear: number;
+      cvv: string;
+    };
+  }
+): Promise<void> {
+  const secretKey = process.env.PAGARME_SECRET_KEY?.trim();
+  if (!secretKey) {
+    throw new Error("PAGARME_SECRET_KEY não configurada.");
+  }
+
+  let body: Record<string, unknown>;
+  if (input.cardToken && input.cardToken.trim().startsWith("token_")) {
+    body = { card_token: input.cardToken.trim() };
+  } else {
+    const cleanNumber = (input.card?.number || "").replace(/\D/g, "");
+    if (cleanNumber.length < 13 || cleanNumber.length > 19) {
+      throw new Error("Número do cartão inválido.");
+    }
+    const cleanCvv = (input.card?.cvv || "").replace(/\D/g, "");
+    if (cleanCvv.length < 3 || cleanCvv.length > 4) {
+      throw new Error("CVV inválido.");
+    }
+    let expYear = Number(input.card?.expYear || 0);
+    if (expYear < 100) expYear += 2000;
+    const expMonth = Number(input.card?.expMonth || 0);
+    if (!expMonth || expMonth < 1 || expMonth > 12) {
+      throw new Error("Mês de validade inválido.");
+    }
+    body = {
+      card: {
+        number: cleanNumber,
+        holder_name: (input.card?.holderName || "").trim().toUpperCase(),
+        exp_month: expMonth,
+        exp_year: expYear,
+        cvv: cleanCvv,
+      },
+    };
+  }
+
+  const auth = getPagarmeAuthHeader(secretKey);
+  const res = await fetch(
+    `https://api.pagar.me/core/v5/subscriptions/${encodeURIComponent(
+      subscriptionId
+    )}/card`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: auth,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(
+      data?.message || "Não foi possível atualizar o cartão na operadora."
+    );
+  }
 }

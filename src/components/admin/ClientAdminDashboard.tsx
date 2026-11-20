@@ -7,6 +7,7 @@ import {
   BarChart3,
   Calendar,
   CheckCircle2,
+  CreditCard,
   ExternalLink,
   Globe,
   Link2,
@@ -40,6 +41,7 @@ import { DomainManagerCard } from "@/components/shared/DomainManagerCard";
 import { StoriesScheduleGenerator } from "@/components/shared/StoriesScheduleGenerator";
 import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
 import { TenantEditorClient } from "@/components/master/TenantEditorClient";
+import { ClientSubscriptionTab } from "@/components/admin/ClientSubscriptionTab";
 
 interface ClientAdminDashboardProps {
   initialTenant: TenantWithRelations;
@@ -47,7 +49,13 @@ interface ClientAdminDashboardProps {
   analytics: WeeklyAnalyticsSummary;
 }
 
-type ClientTab = "overview" | "editor" | "crm" | "horarios" | "dominio";
+type ClientTab =
+  | "overview"
+  | "editor"
+  | "crm"
+  | "horarios"
+  | "dominio"
+  | "assinatura";
 
 export function ClientAdminDashboard({
   initialTenant,
@@ -201,6 +209,7 @@ export function ClientAdminDashboard({
               { key: "crm" as const, label: `Pessoas Interessadas (${totalLeads})`, icon: Users },
               { key: "horarios" as const, label: "Horários e Aulas", icon: Calendar },
               { key: "dominio" as const, label: "Meu Domínio (.com.br)", icon: Globe },
+              { key: "assinatura" as const, label: "Minha Assinatura", icon: CreditCard },
             ].map((item) => {
               const Icon = item.icon;
               const active = tab === item.key;
@@ -480,10 +489,14 @@ export function ClientAdminDashboard({
             <p className="text-sm text-neutral-300 leading-relaxed">
               No <strong>Plano Pro</strong>, o Mini-Funil de WhatsApp salva automaticamente cada interessado com modalidade e turno aqui, permitindo acompanhar quem veio treinar e quem matriculou.
             </p>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300">
-              <Lock className="w-3.5 h-3.5 text-brand-primary" />
-              Fale com o suporte do Nocaute Hub para liberar o Plano Pro
-            </span>
+            <button
+              type="button"
+              onClick={() => setTab("assinatura")}
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-xl bg-brand-primary hover:brightness-110 text-white transition"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Fazer Upgrade para o Plano Pro</span>
+            </button>
           </div>
         )}
 
@@ -799,10 +812,14 @@ export function ClientAdminDashboard({
               <code className="text-white">{tenant.slug}.nocautehub.com</code>. Faça upgrade para o{" "}
               <strong>Plano Pro</strong> para conectar seu domínio próprio com HTTPS automático.
             </p>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300">
-              <Lock className="w-3.5 h-3.5 text-brand-primary" />
-              Fale com o suporte do Nocaute Hub para liberar o Plano Pro
-            </span>
+            <button
+              type="button"
+              onClick={() => setTab("assinatura")}
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-xl bg-brand-primary hover:brightness-110 text-white transition"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Fazer Upgrade para o Plano Pro</span>
+            </button>
           </div>
         )}
 
@@ -819,17 +836,28 @@ export function ClientAdminDashboard({
             />
           </div>
         )}
+
+        {/* ===================================================================
+            ABA 5: MINHA ASSINATURA (STATUS, UPGRADE PRO & CARTÃO)
+           =================================================================== */}
+        {tab === "assinatura" && (
+          <ClientSubscriptionTab
+            tenant={tenant}
+            onTenantUpdated={(updated) => setTenant(updated)}
+          />
+        )}
       </main>
 
       {/* MOBILE BOTTOM TAB BAR (Uso na beira do tatame com o polegar + Safe Area iOS) */}
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-[#101012]/95 backdrop-blur-md border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-5 h-16">
+        <div className="grid grid-cols-6 h-16">
           {[
             { key: "overview" as const, label: "Início", icon: BarChart3 },
             { key: "editor" as const, label: "Site", icon: Palette },
             { key: "crm" as const, label: "Leads", icon: Users },
             { key: "horarios" as const, label: "Horários", icon: Calendar },
             { key: "dominio" as const, label: "Domínio", icon: Globe },
+            { key: "assinatura" as const, label: "Plano", icon: CreditCard },
           ].map((item) => {
             const Icon = item.icon;
             const active = tab === item.key;

@@ -13,9 +13,15 @@ import {
   Loader2,
   AlertCircle,
   Eye,
+  MessageCircle,
 } from "lucide-react";
 import type { PlanTier } from "@/types/tenant";
 import { formatBrlFromCents, PLAN_PRICING } from "@/lib/pagarme";
+import { tokenizeCardInBrowser } from "@/lib/pagarme-client";
+import {
+  buildSalesWhatsAppUrl,
+  trackPlatformConversion,
+} from "@/lib/pixel-events";
 import { getTenantUrl, getTenantPreviewUrl } from "@/lib/urls";
 
 interface TransparentCheckoutClientProps {
@@ -155,6 +161,15 @@ export function TransparentCheckoutClient({
 
     setSubmitting(true);
     try {
+      // 1. Tokeniza o cartão direto no navegador com a chave pública da Pagar.me (pk_...)
+      const cardToken = await tokenizeCardInBrowser({
+        number: cardNumber,
+        holderName,
+        expMonth,
+        expYear,
+        cvv,
+      });
+
       const res = await fetch("/api/billing/pagarme/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -175,6 +190,7 @@ export function TransparentCheckoutClient({
             city,
             state,
           },
+          cardToken,
           card: {
             number: cardNumber,
             holderName,
@@ -193,6 +209,22 @@ export function TransparentCheckoutClient({
         );
         return;
       }
+
+      // 2. Dispara eventos de conversão no Pixel de Tráfego Pago (Meta Pixel + Google)
+      const valueBrl = Number((spec.regularCents / 100).toFixed(2));
+      if (trialDays > 0) {
+        trackPlatformConversion("StartTrial", {
+          value: valueBrl,
+          currency: "BRL",
+          content_name: `${tenant.plan_tier} - ${tenant.name}`,
+          predicted_ltv: valueBrl,
+        });
+      }
+      trackPlatformConversion("Subscribe", {
+        value: valueBrl,
+        currency: "BRL",
+        content_name: `${tenant.plan_tier} - ${tenant.name}`,
+      });
 
       setSuccessData({
         subscriptionId: data.subscriptionId,
@@ -308,9 +340,28 @@ export function TransparentCheckoutClient({
               Nocaute Hub
             </span>
           </Link>
-          <div className="flex items-center gap-2 text-xs text-emerald-400 font-semibold">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Ambiente Seguro SSL • Pagar.me</span>
+          <div className="flex items-center gap-3">
+            <a
+              href={buildSalesWhatsAppUrl(
+                `Olá! Estou na tela de assinatura da academia "${tenant.name}" (${tenant.slug}.nocautehub.com) e gostaria de tirar uma dúvida.`
+              )}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() =>
+                trackPlatformConversion("Lead", {
+                  content_name: `Suporte Checkout - ${tenant.slug}`,
+                })
+              }
+              className="px-3 py-1.5 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/35 text-xs font-semibold text-[#25D366] inline-flex items-center gap-1.5 transition"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Dúvidas? Chamar no WhatsApp</span>
+              <span className="sm:hidden">WhatsApp</span>
+            </a>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
+              <Lock className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Ambiente Seguro SSL • Pagar.me</span>
+            </div>
           </div>
         </div>
       </header>

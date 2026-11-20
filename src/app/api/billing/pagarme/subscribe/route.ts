@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
       trialDays,
       customer,
       billingAddress,
+      cardToken,
       card,
     } = body;
 
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
         city: String(billingAddress?.city || ""),
         state: String(billingAddress?.state || ""),
       },
+      cardToken: cardToken ? String(cardToken) : null,
       card: {
         number: String(card?.number || ""),
         holderName: String(card?.holderName || ""),
