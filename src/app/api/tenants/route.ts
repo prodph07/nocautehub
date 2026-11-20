@@ -26,8 +26,22 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { client_email, client_password, ...tenantInput } = body;
 
+    const planTier: "essencial" | "pro" =
+      tenantInput.plan_tier === "essencial" ? "essencial" : "pro";
+    const isPartner = tenantInput.billing_mode === "partner";
+    const initialStatus =
+      tenantInput.status || (isPartner ? "active" : "preview");
+    const initialBillingMode =
+      tenantInput.billing_mode || (initialStatus === "active" ? "partner" : "preview");
+    const initialSubStatus = tenantInput.subscription_status || "none";
+
     const tenant = await repository.createTenant({
       ...tenantInput,
+      plan_tier: planTier,
+      status: initialStatus,
+      billing_mode: initialBillingMode,
+      subscription_status: initialSubStatus,
+      monthly_price_cents: planTier === "pro" ? 9700 : 4700,
       admin_email: client_email
         ? String(client_email).trim().toLowerCase()
         : undefined,

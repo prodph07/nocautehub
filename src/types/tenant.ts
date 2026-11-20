@@ -1,4 +1,11 @@
-export type TenantStatus = "active" | "suspended";
+export type TenantStatus = "preview" | "active" | "suspended";
+export type BillingMode = "preview" | "pagarme" | "partner";
+export type SubscriptionStatus =
+  | "none"
+  | "pending"
+  | "paid"
+  | "past_due"
+  | "canceled";
 export type DomainStatus = "pending" | "active" | "error";
 export type PlanTier = "essencial" | "pro";
 export type DayOfWeek = "seg" | "ter" | "qua" | "qui" | "sex" | "sab" | "dom";
@@ -86,6 +93,12 @@ export interface Tenant {
   cloudflare_hostname_id: string | null;
   status: TenantStatus;
   plan_tier: PlanTier;
+  billing_mode?: BillingMode;
+  subscription_status?: SubscriptionStatus;
+  monthly_price_cents?: number;
+  pagarme_payment_link_id?: string | null;
+  pagarme_payment_link_url?: string | null;
+  pagarme_subscription_id?: string | null;
   name: string;
   logo_url: string | null;
   whatsapp_number: string;

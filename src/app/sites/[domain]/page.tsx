@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { repository } from "@/lib/repository";
 import { getPlanCapabilities } from "@/lib/plans";
 import { TenantSiteClient } from "@/components/site/TenantSiteClient";
 import { SuspendedScreen } from "@/components/site/SuspendedScreen";
+import { PreviewLockedScreen } from "@/components/site/PreviewLockedScreen";
+import { PreviewBanner } from "@/components/site/PreviewBanner";
 import { TrackingScripts } from "@/components/site/TrackingScripts";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +68,19 @@ export default async function TenantSitePage({ params }: SitePageProps) {
     return <SuspendedScreen academyName={tenant.name} />;
   }
 
+  const reqHeaders = await headers();
+  const isPublicHost = reqHeaders.get("x-nocaute-public-host") === "1";
+
+  if (tenant.status === "preview" && isPublicHost) {
+    return (
+      <PreviewLockedScreen
+        academyName={tenant.name}
+        slug={tenant.slug}
+        paymentLinkUrl={tenant.pagarme_payment_link_url}
+      />
+    );
+  }
+
   const schemaOrgGym = {
     "@context": "https://schema.org",
     "@type": "ExerciseGym",
@@ -118,6 +134,12 @@ export default async function TenantSitePage({ params }: SitePageProps) {
       )}
       {getPlanCapabilities(tenant.plan_tier).pixelTracking && (
         <TrackingScripts pixelId={tenant.pixel_id} gtmId={tenant.gtm_id} />
+      )}
+      {tenant.status === "preview" && !isPublicHost && (
+        <PreviewBanner
+          slug={tenant.slug}
+          paymentLinkUrl={tenant.pagarme_payment_link_url}
+        />
       )}
       <TenantSiteClient tenant={tenant} />
     </>

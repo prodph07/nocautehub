@@ -15,8 +15,13 @@ import {
   X,
 } from "lucide-react";
 import { PLAN_COMPARISON_ROWS } from "@/lib/plans";
+import { getPlatformSettings } from "@/lib/platform-settings";
+import { TrackingScripts } from "@/components/site/TrackingScripts";
 
-export default function NocauteHubHomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function NocauteHubHomePage() {
+  const platformSettings = await getPlatformSettings();
   const salesWa = (process.env.NEXT_PUBLIC_SALES_WHATSAPP || "").replace(
     /\D/g,
     ""
@@ -29,6 +34,11 @@ export default function NocauteHubHomePage() {
 
   return (
     <div className="min-h-screen bg-[#0C0C0C] text-neutral-100 flex flex-col">
+      <TrackingScripts
+        pixelId={platformSettings.meta_pixel_id || null}
+        gtmId={platformSettings.gtm_id || null}
+        googleAdsId={platformSettings.google_ads_id || null}
+      />
       {/* Header Institucional */}
       <header className="border-b border-white/10 bg-[#0C0C0C]/85 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
@@ -270,7 +280,13 @@ export default function NocauteHubHomePage() {
                         Benefício
                       </th>
                       <th className="p-4 sm:p-5 text-center text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-200 w-44 sm:w-56">
-                        Plano Essencial
+                        <span className="block">Plano Essencial</span>
+                        <span className="block text-lg sm:text-xl font-display text-white mt-1">
+                          R$ 47<span className="text-[11px] font-sans font-normal text-neutral-400">/mês</span>
+                        </span>
+                        <span className="block text-[10px] font-semibold normal-case tracking-normal text-emerald-400">
+                          15 dias grátis para testar
+                        </span>
                       </th>
                       <th className="p-4 sm:p-5 text-center text-xs sm:text-sm font-bold uppercase tracking-wider text-white bg-rose-600/15 border-l border-rose-500/25 w-48 sm:w-64">
                         <span className="inline-flex items-center gap-1.5 text-rose-400 block text-[10px] mb-1">
@@ -278,6 +294,12 @@ export default function NocauteHubHomePage() {
                           RECOMENDADO
                         </span>
                         <span className="block">Plano Pro</span>
+                        <span className="block text-lg sm:text-xl font-display text-white mt-1">
+                          R$ 97<span className="text-[11px] font-sans font-normal text-rose-200">/mês</span>
+                        </span>
+                        <span className="block text-[10px] font-semibold normal-case tracking-normal text-emerald-300">
+                          15 dias grátis para testar
+                        </span>
                       </th>
                     </tr>
                   </thead>

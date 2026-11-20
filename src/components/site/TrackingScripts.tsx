@@ -5,9 +5,18 @@ import Script from "next/script";
 interface TrackingScriptsProps {
   pixelId: string | null;
   gtmId: string | null;
+  googleAdsId?: string | null;
 }
 
-export function TrackingScripts({ pixelId, gtmId }: TrackingScriptsProps) {
+export function TrackingScripts({
+  pixelId,
+  gtmId,
+  googleAdsId,
+}: TrackingScriptsProps) {
+  const cleanGoogleId = googleAdsId
+    ? googleAdsId.replace(/[^a-zA-Z0-9_-]/g, "")
+    : "";
+
   return (
     <>
       {pixelId && (
@@ -36,6 +45,23 @@ export function TrackingScripts({ pixelId, gtmId }: TrackingScriptsProps) {
             })(window,document,'script','dataLayer','${gtmId.replace(/[^a-zA-Z0-9_-]/g, "")}');
           `}
         </Script>
+      )}
+      {cleanGoogleId && (
+        <>
+          <Script
+            id="google-gtag-src"
+            src={`https://www.googletagmanager.com/gtag/js?id=${cleanGoogleId}`}
+            strategy="afterInteractive"
+          />
+          <Script id="google-gtag-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${cleanGoogleId}');
+            `}
+          </Script>
+        </>
       )}
     </>
   );

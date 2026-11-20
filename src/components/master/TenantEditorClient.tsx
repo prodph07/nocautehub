@@ -1704,11 +1704,15 @@ export function TenantEditorClient({
                           onChange={(e) =>
                             setTenant({
                               ...tenant,
-                              status: e.target.value as "active" | "suspended",
+                              status: e.target.value as
+                                | "preview"
+                                | "active"
+                                | "suspended",
                             })
                           }
                           className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-xs text-white"
                         >
+                          <option value="preview">Preview (Demonstração)</option>
                           <option value="active">Ativo (Online)</option>
                           <option value="suspended">Suspenso (Manutenção)</option>
                         </select>

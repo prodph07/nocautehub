@@ -4,8 +4,9 @@ import { repository } from "@/lib/repository";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3001";
-  const protocol = rootDomain.includes("localhost") ? "http" : "https";
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "nocautehub.com";
+  const isLocal = rootDomain.includes("localhost");
+  const protocol = isLocal ? "http" : "https";
   const baseUrl = `${protocol}://${rootDomain}`;
 
   const tenants = await repository.listTenants();
@@ -21,7 +22,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...activeTenants.map((tenant) => ({
       url: tenant.custom_domain
         ? `https://${tenant.custom_domain}`
-        : `${baseUrl}/sites/${tenant.slug}`,
+        : isLocal
+        ? `${baseUrl}/sites/${tenant.slug}`
+        : `https://${tenant.slug}.${rootDomain}`,
       lastModified: new Date(tenant.updated_at || Date.now()),
       changeFrequency: "weekly" as const,
       priority: 0.9,

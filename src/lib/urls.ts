@@ -43,3 +43,18 @@ export function getTenantUrl(
   }`;
 }
 
+/**
+ * URL de demonstração (preview) no domínio raiz (/sites/<slug>),
+ * usada enquanto a academia ainda não foi ativada no subdomínio oficial.
+ */
+export function getTenantPreviewUrl(
+  tenant: { slug: string },
+  subPath = ""
+): string {
+  const cleanSub =
+    subPath.startsWith("/") || subPath.startsWith("#") || !subPath
+      ? subPath
+      : `/${subPath}`;
+  return `/sites/${tenant.slug}${cleanSub}`;
+}
+

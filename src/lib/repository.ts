@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type {
   TenantWithRelations,
   Lead,
@@ -17,47 +18,76 @@ import {
 import { localStore } from "./local-store";
 import { createDemoSeedData } from "./defaults";
 
-async function hydrateSupabaseTenant(
-  tenantRow: Record<string, unknown>
-): Promise<TenantWithRelations> {
-  const supabase = (await createServerSupabase()) ?? createAdminSupabase();
-  if (!supabase) {
-    return tenantRow as unknown as TenantWithRelations;
-  }
+const TENANT_JOIN_SELECT =
+  "*, modalities(*), schedules(*), instructors(*), testimonials(*), leads(count)";
 
-  const tenantId = String(tenantRow.id);
-  const [mods, scheds, insts, tests, leadsCount] = await Promise.all([
-    supabase
-      .from("modalities")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .order("display_order", { ascending: true }),
-    supabase
-      .from("schedules")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .order("start_time", { ascending: true }),
-    supabase
-      .from("instructors")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .order("display_order", { ascending: true }),
-    supabase.from("testimonials").select("*").eq("tenant_id", tenantId),
-    supabase
-      .from("leads")
-      .select("id", { count: "exact", head: true })
-      .eq("tenant_id", tenantId),
-  ]);
+function mapJoinedTenantRow(
+  row: Record<string, unknown>
+): TenantWithRelations {
+  const mods = Array.isArray(row.modalities)
+    ? ([...row.modalities] as Modality[]).sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+      )
+    : [];
+
+  const scheds = Array.isArray(row.schedules)
+    ? ([...row.schedules] as ScheduleItem[]).sort((a, b) =>
+        (a.start_time || "").localeCompare(b.start_time || "")
+      )
+    : [];
+
+  const insts = Array.isArray(row.instructors)
+    ? ([...row.instructors] as Instructor[]).sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+      )
+    : [];
+
+  const tests = Array.isArray(row.testimonials)
+    ? (row.testimonials as Testimonial[])
+    : [];
+
+  const leadsArr = row.leads as Array<{ count?: number }> | undefined;
+  const leadsCount =
+    Array.isArray(leadsArr) && typeof leadsArr[0]?.count === "number"
+      ? leadsArr[0].count
+      : typeof row.leads_count === "number"
+      ? row.leads_count
+      : 0;
+
+  const { leads: _leadsRel, ...rest } = row;
+  void _leadsRel;
 
   return {
-    ...(tenantRow as unknown as TenantWithRelations),
-    modalities: (mods.data ?? []) as Modality[],
-    schedules: (scheds.data ?? []) as ScheduleItem[],
-    instructors: (insts.data ?? []) as Instructor[],
-    testimonials: (tests.data ?? []) as Testimonial[],
-    leads_count: leadsCount.count ?? 0,
+    ...(rest as unknown as TenantWithRelations),
+    modalities: mods,
+    schedules: scheds,
+    instructors: insts,
+    testimonials: tests,
+    leads_count: leadsCount,
   };
 }
+
+const fetchTenantByDomainOrSlugCached = cache(
+  async (identifier: string): Promise<TenantWithRelations | null> => {
+    if (!isSupabaseConfigured()) {
+      return localStore.getTenantByDomainOrSlug(identifier);
+    }
+
+    const supabase = createAdminSupabase() ?? (await createServerSupabase());
+    if (!supabase) return localStore.getTenantByDomainOrSlug(identifier);
+
+    const clean = identifier.toLowerCase().trim();
+    const { data, error } = await supabase
+      .from("tenants")
+      .select(TENANT_JOIN_SELECT)
+      .or(`slug.eq.${clean},custom_domain.eq.${clean}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return mapJoinedTenantRow(data as Record<string, unknown>);
+  }
+);
 
 export const repository = {
   isLocalMode(): boolean {
@@ -74,33 +104,19 @@ export const repository = {
 
     const { data, error } = await supabase
       .from("tenants")
-      .select("*")
+      .select(TENANT_JOIN_SELECT)
       .order("created_at", { ascending: false });
 
     if (error || !data) return [];
-    return Promise.all(data.map((row) => hydrateSupabaseTenant(row)));
+    return data.map((row) =>
+      mapJoinedTenantRow(row as Record<string, unknown>)
+    );
   },
 
   async getTenantByDomainOrSlug(
     identifier: string
   ): Promise<TenantWithRelations | null> {
-    if (!isSupabaseConfigured()) {
-      return localStore.getTenantByDomainOrSlug(identifier);
-    }
-
-    const supabase = (await createServerSupabase()) ?? createAdminSupabase();
-    if (!supabase) return localStore.getTenantByDomainOrSlug(identifier);
-
-    const clean = identifier.toLowerCase().trim();
-    const { data, error } = await supabase
-      .from("tenants")
-      .select("*")
-      .or(`slug.eq.${clean},custom_domain.eq.${clean}`)
-      .limit(1)
-      .maybeSingle();
-
-    if (error || !data) return null;
-    return hydrateSupabaseTenant(data);
+    return fetchTenantByDomainOrSlugCached(identifier);
   },
 
   async getTenantById(id: string): Promise<TenantWithRelations | null> {
@@ -113,12 +129,12 @@ export const repository = {
 
     const { data, error } = await supabase
       .from("tenants")
-      .select("*")
+      .select(TENANT_JOIN_SELECT)
       .eq("id", id)
       .maybeSingle();
 
     if (error || !data) return null;
-    return hydrateSupabaseTenant(data);
+    return mapJoinedTenantRow(data as Record<string, unknown>);
   },
 
   async createTenant(
@@ -249,7 +265,7 @@ export const repository = {
       await supabase.from("testimonials").insert(testsToInsert);
     }
 
-    return hydrateSupabaseTenant(created);
+    return (await this.getTenantById(tenantId))!;
   },
 
   async updateTenant(
@@ -395,7 +411,12 @@ export const repository = {
       custom_domain: null,
       domain_status: "pending",
       cloudflare_hostname_id: null,
-      status: "active",
+      status: "preview",
+      billing_mode: "preview",
+      subscription_status: "none",
+      pagarme_payment_link_id: null,
+      pagarme_payment_link_url: null,
+      pagarme_subscription_id: null,
     });
   },
 

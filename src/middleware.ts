@@ -31,13 +31,21 @@ export function middleware(req: NextRequest) {
     hostname.endsWith(".workers.dev") ||
     hostname.endsWith(".vercel.app");
 
+  // Helper para marcar requisições vindas de subdomínio oficial ou domínio próprio
+  const rewriteToTenant = (target: string) => {
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-nocaute-public-host", "1");
+    return NextResponse.rewrite(
+      new URL(`/sites/${target}${url.pathname}${url.search}`, req.url),
+      { request: { headers: requestHeaders } }
+    );
+  };
+
   // Subdomínio local (ex: nocaute-fight-club.localhost)
   if (hostname.endsWith(".localhost")) {
     const slug = hostname.replace(".localhost", "");
     if (slug && slug !== "www") {
-      return NextResponse.rewrite(
-        new URL(`/sites/${slug}${url.pathname}${url.search}`, req.url)
-      );
+      return rewriteToTenant(slug);
     }
   }
 
@@ -45,9 +53,7 @@ export function middleware(req: NextRequest) {
   if (hostname.endsWith(".nocautehub.com")) {
     const slug = hostname.replace(".nocautehub.com", "");
     if (slug && slug !== "www") {
-      return NextResponse.rewrite(
-        new URL(`/sites/${slug}${url.pathname}${url.search}`, req.url)
-      );
+      return rewriteToTenant(slug);
     }
   }
 
@@ -59,20 +65,16 @@ export function middleware(req: NextRequest) {
   ) {
     const slug = hostname.replace(`.${rootDomainEnv}`, "");
     if (slug && slug !== "www") {
-      return NextResponse.rewrite(
-        new URL(`/sites/${slug}${url.pathname}${url.search}`, req.url)
-      );
+      return rewriteToTenant(slug);
     }
   }
 
-  // Domínio principal da plataforma (Institucional + Painel Master + preview /_sites/[domain])
+  // Domínio principal da plataforma (Institucional + Painel Master + preview /sites/[domain])
   if (isRootDomain) {
     return NextResponse.next();
   }
 
-  // Domínio próprio de cliente (ex: academiaalfa.com.br -> /_sites/academiaalfa.com.br)
+  // Domínio próprio de cliente (ex: academiaalfa.com.br -> /sites/academiaalfa.com.br)
   const cleanCustomDomain = hostname.replace(/^www\./, "");
-  return NextResponse.rewrite(
-    new URL(`/sites/${cleanCustomDomain}${url.pathname}${url.search}`, req.url)
-  );
+  return rewriteToTenant(cleanCustomDomain);
 }
